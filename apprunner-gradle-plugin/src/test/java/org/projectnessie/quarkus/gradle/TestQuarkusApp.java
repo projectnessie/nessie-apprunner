@@ -70,7 +70,7 @@ class TestQuarkusApp {
             "include 'sub'"));
 
     // Versions injected from build.gradle
-    nessieVersionForTest = System.getProperty("nessie-version-for-test", "0.6.1");
+    nessieVersionForTest = System.getProperty("nessie-version-for-test", "0.21.2");
     String junitVersion = System.getProperty("junit-version");
     String jacksonVersion = System.getProperty("jackson-version");
 

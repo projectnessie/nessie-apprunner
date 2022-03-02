@@ -21,7 +21,8 @@ import java.io.IOException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.projectnessie.client.NessieClient;
+import org.projectnessie.client.api.NessieApiV1;
+import org.projectnessie.client.http.HttpClientBuilder;
 import org.projectnessie.model.Branch;
 
 /**
@@ -37,11 +38,11 @@ class TestSimulatingTestUsingThePlugin {
 
     String uri = String.format("http://127.0.0.1:%s/api/v1", port);
 
-    NessieClient client = NessieClient.builder().withUri(uri).build();
+    NessieApiV1 client = HttpClientBuilder.builder().withUri(uri).build(NessieApiV1.class);
     // Just some simple REST request to verify that Nessie is started - no fancy interactions w/ Nessie
-    client.getConfigApi().getConfig();
+    client.getConfig();
 
     // We have seen that HTTP/POST requests can fail with conflicting dependencies
-    client.getTreeApi().createReference(Branch.of("foo-" + System.nanoTime(), null));
+    client.createReference().sourceRefName("main").reference(Branch.of("foo-" + System.nanoTime(), null)).create();
   }
 }

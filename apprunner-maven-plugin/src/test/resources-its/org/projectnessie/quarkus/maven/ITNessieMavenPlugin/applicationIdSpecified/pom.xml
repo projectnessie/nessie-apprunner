@@ -25,7 +25,7 @@
 
   <properties>
     <maven.compiler.release>8</maven.compiler.release>
-    <nessie.version-for-test>0.6.1</nessie.version-for-test>
+    <nessie.version-for-test>0.21.2</nessie.version-for-test>
   </properties>
 
   <dependencies>
