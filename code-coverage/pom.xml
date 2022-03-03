@@ -33,12 +33,12 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.projectnessie.nessie-apprunner</groupId>
+      <groupId>org.projectnessie</groupId>
       <artifactId>nessie-apprunner-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.projectnessie.nessie-apprunner</groupId>
+      <groupId>org.projectnessie</groupId>
       <artifactId>nessie-apprunner-maven-plugin</artifactId>
       <version>${project.version}</version>
     </dependency>
