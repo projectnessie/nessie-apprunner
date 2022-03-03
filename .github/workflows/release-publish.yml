@@ -45,10 +45,6 @@ jobs:
     name: Publish release
     runs-on: ubuntu-latest
 
-    # Runs in the `release` environment, which has the necessary secrets and defines the reviewers.
-    # See https://docs.github.com/en/actions/reference/environments
-    environment: release
-
     steps:
 
     # GH doesn't provide just the tag name, so this step strips `/refs/tags/apprunner-` from `GITHUB_REF`
