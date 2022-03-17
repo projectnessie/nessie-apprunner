@@ -295,9 +295,10 @@ public class QuarkusAppStartMojo extends AbstractQuarkusAppMojo {
 
       Properties projectProperties = getProject().getProperties();
       projectProperties.setProperty(httpListenUrlProperty, listenUrl);
-      projectProperties.setProperty(
-          httpListenPortProperty, Integer.toString(URI.create(listenUrl).getPort()));
-
+      String quarkusPort = Integer.toString(URI.create(listenUrl).getPort());
+      projectProperties.setProperty(httpListenPortProperty, quarkusPort);
+      // set the port as the property, to allow clients of the extension to get the port.
+      System.setProperty("quarkus.http.test-port", quarkusPort);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new MojoExecutionException(String.format("Process-start interrupted: %s", command), e);
