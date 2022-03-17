@@ -255,7 +255,14 @@ public class QuarkusAppStartMojo extends AbstractQuarkusAppMojo {
       systemProperties.forEach(
           (k, v) -> command.add(String.format("-D%s=%s", k.toString(), v.toString())));
     }
-    command.add("-Dquarkus.http.port=0");
+
+    // if the quarkus.http.port was passed by the caller via jvmArguments,
+    // it will use it as is and do not add the `quarkus.http.port` to command line again.
+    // If it is not defined, set to 0 to start on the random port
+    if (!containsQuarkusPortSetting(command)) {
+      // use random port
+      command.add("-Dquarkus.http.port=0");
+    }
     command.add("-jar");
     command.add(execJar);
     if (arguments != null) {
@@ -304,5 +311,9 @@ public class QuarkusAppStartMojo extends AbstractQuarkusAppMojo {
     } catch (Exception e) {
       throw new MojoExecutionException(String.format("Failed to start the process %s", command), e);
     }
+  }
+
+  private boolean containsQuarkusPortSetting(List<String> command) {
+    return command.stream().anyMatch(p -> p.contains("quarkus.http.port"));
   }
 }

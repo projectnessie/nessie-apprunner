@@ -42,7 +42,9 @@ public class QuarkusAppExtension {
         project
             .getObjects()
             .mapProperty(String.class, String.class)
-            .convention(Collections.singletonMap("quarkus.http.port", "0"));
+            .convention(
+                Collections.singletonMap(
+                    "quarkus.http.port", System.getProperty("quarkus.http.port", "0")));
     arguments = project.getObjects().listProperty(String.class);
     jvmArguments = project.getObjects().listProperty(String.class);
     javaVersion = project.getObjects().property(Integer.class).convention(11);

@@ -124,7 +124,15 @@ public class ProcessState {
         .getSystemProperties()
         .get()
         .forEach((k, v) -> command.add(String.format("-D%s=%s", k, v)));
-    command.add("-Dquarkus.http.port=0");
+
+    // if the quarkus.http.port was passed by the caller via jvmArguments,
+    // it will use it as is and do not add the `quarkus.http.port` to command line again.
+    // If it is not defined, set to 0 to start on the random port
+    if (!containsQuarkusPortSetting(command)) {
+      // use random port
+      command.add("-Dquarkus.http.port=0");
+    }
+
     command.add("-jar");
     command.add(execJar.getAbsolutePath());
     command.addAll(extension.getArguments().get());
@@ -206,5 +214,9 @@ public class ProcessState {
             + "Set the Java-Home for a compatible JVM using the environment variable JDK%d_HOME or "
             + "JAVA%d_HOME.",
         version, version, version);
+  }
+
+  private boolean containsQuarkusPortSetting(List<String> command) {
+    return command.stream().anyMatch(p -> p.contains("quarkus.http.port"));
   }
 }
