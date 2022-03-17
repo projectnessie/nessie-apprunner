@@ -51,7 +51,7 @@ public class QuarkusAppExtension {
     httpListenPortProperty =
         project.getObjects().property(String.class).convention("quarkus.http.test-port");
     // set the port as the property, to allow clients of the extension to get the port.
-    System.setProperty("quarkus.http.test-port", httpListenPortProperty);
+    System.setProperty("quarkus.http.test-port", httpListenPortProperty.get());
     workingDirectory =
         project
             .getObjects()
