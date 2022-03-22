@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Setup Java, Maven, Gradle
       uses: ./.github/actions/dev-tool-java
 
@@ -48,7 +48,7 @@ jobs:
       working-directory: ./apprunner-gradle-plugin
 
     - name: Capture test results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: test-results
         path: |
