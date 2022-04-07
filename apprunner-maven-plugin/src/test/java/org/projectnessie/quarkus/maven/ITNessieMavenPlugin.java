@@ -75,6 +75,24 @@ class ITNessieMavenPlugin {
   @MavenTest
   @MavenGoal("verify")
   @MavenOption(MavenCLIOptions.ERRORS)
+  void quarkusPortParameterized(MavenExecutionResult result) {
+    assertThat(result)
+        .isSuccessful()
+        .out()
+        .info()
+        .anyMatch(
+            s ->
+                s.matches(
+                    "Starting process: .*-jar .*/nessie-quarkus-.*-runner.jar, additional env: .*HELLO=world.*"))
+        .anyMatch(s -> s.matches("Starting process: .*java.* -Dfoo=bar .*"))
+        // the expected 1111 port is provided in the pom.xml jvmArgs section.
+        .anyMatch(s -> s.matches("Starting process: .*java.* -Dquarkus.http.port=1111 .*"))
+        .anyMatch(s -> s.matches("Quarkus application stopped."));
+  }
+
+  @MavenTest
+  @MavenGoal("verify")
+  @MavenOption(MavenCLIOptions.ERRORS)
   void unknownJdk(MavenExecutionResult result) {
     assertThat(result)
         .isFailure()
