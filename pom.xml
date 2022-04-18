@@ -144,7 +144,7 @@
     <apprunner.version>${project.version}</apprunner.version>
     <assertj.version>3.22.0</assertj.version>
     <checkstyle.version>10.1</checkstyle.version>
-    <errorprone-slf4j.version>0.1.9</errorprone-slf4j.version>
+    <errorprone-slf4j.version>0.1.10</errorprone-slf4j.version>
     <google-error-prone.version>2.12.1</google-error-prone.version>
     <google-java-format.version>1.15.0</google-java-format.version>
     <!-- Jackson's required by Gradle plugin integration tests -->
