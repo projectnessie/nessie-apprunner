@@ -45,17 +45,19 @@ public class QuarkusAppPlugin implements Plugin<Project> {
                 "References the Nessie-Quarkus server dependency, only a single dependency allowed.");
 
     // Cannot use the task name "test" here, because the "test" task might not have been registered
-    // yet.
-    // This `withType(Test.class...)` construct will configure any current and future task of type
-    // `Test`.
+    // yet. This `withType(Test.class...)` construct will configure any current and future task of
+    // type `Test`.
     target
         .getTasks()
         .withType(
             Test.class,
             new Action<Test>() {
-              @SuppressWarnings("UnstableApiUsage") // omit warning about `Property`+`MapProperty`
               @Override
               public void execute(Test test) {
+                if (!extension.taskIsApplicable(test)) {
+                  return;
+                }
+
                 // Add the StartTask's properties as "inputs" to the Test task, so the Test task is
                 // executed, when those properties change.
                 test.getInputs().properties(extension.getEnvironment().get());
