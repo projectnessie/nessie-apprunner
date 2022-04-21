@@ -136,7 +136,7 @@ public class ProcessState {
     command.addAll(extension.getArgumentsNonInput().get());
 
     if (testTask.getLogger().isDebugEnabled()) {
-      testTask.getLogger().debug("Starting process: {}", command);
+      testTask.getLogger().info("Starting process: {}", command);
     } else {
       testTask.getLogger().info("Running jar {} with {}", execJar, javaVM.getJavaExecutable());
     }
@@ -151,6 +151,8 @@ public class ProcessState {
 
     try {
       processHandler = new ProcessHandler();
+      processHandler.setStdoutTarget(line -> testTask.getLogger().info("[stdout] {}", line));
+      processHandler.setStderrTarget(line -> testTask.getLogger().info("[stderr] {}", line));
       processHandler.start(processBuilder);
       if (extension.getTimeToListenUrlMillis().get() > 0L) {
         processHandler.setTimeToListenUrlMillis(extension.getTimeToListenUrlMillis().get());

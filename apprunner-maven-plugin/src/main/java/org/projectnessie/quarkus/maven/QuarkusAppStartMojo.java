@@ -287,6 +287,8 @@ public class QuarkusAppStartMojo extends AbstractQuarkusAppMojo {
       if (timeToStopMillis > 0L) {
         processHandler.setTimeStopMillis(timeToStopMillis);
       }
+      processHandler.setStdoutTarget(line -> getLog().info(String.format("[stdout] %s", line)));
+      processHandler.setStdoutTarget(line -> getLog().info(String.format("[stderr] %s", line)));
       processHandler.start(processBuilder);
 
       setApplicationHandle(processHandler);
