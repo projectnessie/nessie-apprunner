@@ -120,14 +120,20 @@ public class ProcessState {
     List<String> command = new ArrayList<>();
     command.add(javaVM.getJavaExecutable().toString());
     command.addAll(extension.getJvmArguments().get());
+    command.addAll(extension.getJvmArgumentsNonInput().get());
     extension
         .getSystemProperties()
+        .get()
+        .forEach((k, v) -> command.add(String.format("-D%s=%s", k, v)));
+    extension
+        .getSystemPropertiesNonInput()
         .get()
         .forEach((k, v) -> command.add(String.format("-D%s=%s", k, v)));
     command.add("-Dquarkus.http.port=0");
     command.add("-jar");
     command.add(execJar.getAbsolutePath());
     command.addAll(extension.getArguments().get());
+    command.addAll(extension.getArgumentsNonInput().get());
 
     if (testTask.getLogger().isDebugEnabled()) {
       testTask.getLogger().debug("Starting process: {}", command);
@@ -137,6 +143,10 @@ public class ProcessState {
 
     ProcessBuilder processBuilder = new ProcessBuilder().command(command);
     extension.getEnvironment().get().forEach((k, v) -> processBuilder.environment().put(k, v));
+    extension
+        .getEnvironmentNonInput()
+        .get()
+        .forEach((k, v) -> processBuilder.environment().put(k, v));
     processBuilder.directory(workDir.toFile());
 
     try {

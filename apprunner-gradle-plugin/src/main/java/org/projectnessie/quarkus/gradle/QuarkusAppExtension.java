@@ -29,9 +29,13 @@ import org.gradle.api.tasks.testing.Test;
 
 public class QuarkusAppExtension {
   private final MapProperty<String, String> environment;
+  private final MapProperty<String, String> environmentNonInput;
   private final MapProperty<String, String> systemProperties;
+  private final MapProperty<String, String> systemPropertiesNonInput;
   private final ListProperty<String> arguments;
+  private final ListProperty<String> argumentsNonInput;
   private final ListProperty<String> jvmArguments;
+  private final ListProperty<String> jvmArgumentsNonInput;
   private final Property<Integer> javaVersion;
   private final Property<String> httpListenPortProperty;
   private final Property<String> httpListenUrlProperty;
@@ -43,13 +47,17 @@ public class QuarkusAppExtension {
 
   public QuarkusAppExtension(Project project) {
     environment = project.getObjects().mapProperty(String.class, String.class);
+    environmentNonInput = project.getObjects().mapProperty(String.class, String.class);
     systemProperties =
         project
             .getObjects()
             .mapProperty(String.class, String.class)
             .convention(Collections.singletonMap("quarkus.http.port", "0"));
+    systemPropertiesNonInput = project.getObjects().mapProperty(String.class, String.class);
     arguments = project.getObjects().listProperty(String.class);
+    argumentsNonInput = project.getObjects().listProperty(String.class);
     jvmArguments = project.getObjects().listProperty(String.class);
+    jvmArgumentsNonInput = project.getObjects().listProperty(String.class);
     javaVersion = project.getObjects().property(Integer.class).convention(11);
     httpListenUrlProperty =
         project.getObjects().property(String.class).convention("quarkus.http.test-url");
@@ -69,16 +77,32 @@ public class QuarkusAppExtension {
     return systemProperties;
   }
 
+  public MapProperty<String, String> getSystemPropertiesNonInput() {
+    return systemPropertiesNonInput;
+  }
+
   public MapProperty<String, String> getEnvironment() {
     return environment;
+  }
+
+  public MapProperty<String, String> getEnvironmentNonInput() {
+    return environmentNonInput;
   }
 
   public ListProperty<String> getArguments() {
     return arguments;
   }
 
+  public ListProperty<String> getArgumentsNonInput() {
+    return argumentsNonInput;
+  }
+
   public ListProperty<String> getJvmArguments() {
     return jvmArguments;
+  }
+
+  public ListProperty<String> getJvmArgumentsNonInput() {
+    return jvmArgumentsNonInput;
   }
 
   public Property<Integer> getJavaVersion() {
