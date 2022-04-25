@@ -16,16 +16,16 @@
 package org.projectnessie.quarkus.gradle;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import org.gradle.api.Action;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
-import org.gradle.api.tasks.testing.Test;
 
 public class QuarkusAppExtension {
   private final MapProperty<String, String> environment;
@@ -43,7 +43,6 @@ public class QuarkusAppExtension {
   private final RegularFileProperty workingDirectory;
   private final Property<Long> timeToListenUrlMillis;
   private final Property<Long> timeToStopMillis;
-  private final List<TaskProvider<Test>> includedTasks = new ArrayList<>();
 
   public QuarkusAppExtension(Project project) {
     environment = project.getObjects().mapProperty(String.class, String.class);
@@ -133,16 +132,23 @@ public class QuarkusAppExtension {
     return timeToStopMillis;
   }
 
-  public QuarkusAppExtension includeTask(TaskProvider<Test> task) {
-    includedTasks.add(task);
+  public QuarkusAppExtension includeTasks(TaskCollection<? extends Task> taskCollection) {
+    return includeTasks(taskCollection, null);
+  }
+
+  public <T extends Task> QuarkusAppExtension includeTasks(
+      TaskCollection<T> taskCollection, Action<T> postStartAction) {
+    taskCollection.configureEach(new NessieQuarkusTaskConfigurer<>(postStartAction));
     return this;
   }
 
-  boolean taskIsApplicable(Test test) {
-    if (includedTasks.isEmpty()) {
-      return true;
-    }
-    return includedTasks.stream()
-        .anyMatch(taskProvider -> taskProvider.getName().equals(test.getName()));
+  public QuarkusAppExtension includeTask(TaskProvider<? extends Task> taskProvider) {
+    return includeTask(taskProvider, null);
+  }
+
+  public <T extends Task> QuarkusAppExtension includeTask(
+      TaskProvider<T> taskProvider, Action<T> postStartAction) {
+    taskProvider.configure(new NessieQuarkusTaskConfigurer<>(postStartAction));
+    return this;
   }
 }
