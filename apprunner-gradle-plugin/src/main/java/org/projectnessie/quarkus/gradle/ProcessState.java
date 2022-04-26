@@ -27,13 +27,16 @@ import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import org.gradle.api.GradleException;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.process.JavaForkOptions;
 import org.projectnessie.quarkus.runner.JavaVM;
 import org.projectnessie.quarkus.runner.ProcessHandler;
 
@@ -48,13 +51,12 @@ public class ProcessState {
   @TaskAction
   public void noop() {}
 
-  @SuppressWarnings("UnstableApiUsage") // omit warning about `Property`+`MapProperty`
-  void quarkusStart(Test testTask) {
+  void quarkusStart(Task task) {
     QuarkusAppExtension extension =
-        testTask.getProject().getExtensions().getByType(QuarkusAppExtension.class);
+        task.getProject().getExtensions().getByType(QuarkusAppExtension.class);
 
     Configuration appConfig =
-        testTask.getProject().getConfigurations().getByName(QuarkusAppPlugin.APP_CONFIG_NAME);
+        task.getProject().getConfigurations().getByName(QuarkusAppPlugin.APP_CONFIG_NAME);
 
     RegularFile configuredJar = extension.getExecutableJar().getOrNull();
 
@@ -135,11 +137,7 @@ public class ProcessState {
     command.addAll(extension.getArguments().get());
     command.addAll(extension.getArgumentsNonInput().get());
 
-    if (testTask.getLogger().isDebugEnabled()) {
-      testTask.getLogger().info("Starting process: {}", command);
-    } else {
-      testTask.getLogger().info("Running jar {} with {}", execJar, javaVM.getJavaExecutable());
-    }
+    task.getLogger().info("Starting process: {}", command);
 
     ProcessBuilder processBuilder = new ProcessBuilder().command(command);
     extension.getEnvironment().get().forEach((k, v) -> processBuilder.environment().put(k, v));
@@ -151,8 +149,8 @@ public class ProcessState {
 
     try {
       processHandler = new ProcessHandler();
-      processHandler.setStdoutTarget(line -> testTask.getLogger().info("[stdout] {}", line));
-      processHandler.setStderrTarget(line -> testTask.getLogger().info("[stderr] {}", line));
+      processHandler.setStdoutTarget(line -> task.getLogger().info("[stdout] {}", line));
+      processHandler.setStderrTarget(line -> task.getLogger().info("[stderr] {}", line));
       processHandler.start(processBuilder);
       if (extension.getTimeToListenUrlMillis().get() > 0L) {
         processHandler.setTimeToListenUrlMillis(extension.getTimeToListenUrlMillis().get());
@@ -181,30 +179,38 @@ public class ProcessState {
     }
     String listenPort = Integer.toString(URI.create(listenUrl).getPort());
 
+    // Add the Quarkus properties as "generic properties", so any task can use them.
+    ExtraPropertiesExtension extra = task.getExtensions().getByType(ExtraPropertiesExtension.class);
+    extra.set(extension.getHttpListenUrlProperty().get(), listenUrl);
+    extra.set(extension.getHttpListenPortProperty().get(), listenPort);
+
     // Do not put the "dynamic" properties (quarkus.http.test-port) to the `Test` task's
     // system-properties, because those are subject to the test-task's inputs, which is used
     // as the build-cache key. Instead, pass the dynamic properties via a
     // CommandLineArgumentProvider.
     // In other words: ensure that the `Test` tasks is cacheable.
-    testTask
-        .getJvmArgumentProviders()
-        .add(
-            () ->
-                Arrays.asList(
-                    String.format("-D%s=%s", extension.getHttpListenUrlProperty().get(), listenUrl),
-                    String.format(
-                        "-D%s=%s", extension.getHttpListenPortProperty().get(), listenPort)));
+    if (task instanceof JavaForkOptions) {
+      Test test = (Test) task;
+      test.getJvmArgumentProviders()
+          .add(
+              () ->
+                  Arrays.asList(
+                      String.format(
+                          "-D%s=%s", extension.getHttpListenUrlProperty().get(), listenUrl),
+                      String.format(
+                          "-D%s=%s", extension.getHttpListenPortProperty().get(), listenPort)));
+    }
   }
 
-  void quarkusStop(Test testTask) {
+  void quarkusStop(Task task) {
     if (processHandler == null) {
-      testTask.getLogger().debug("No application found.");
+      task.getLogger().debug("No application found.");
       return;
     }
 
     try {
       processHandler.stop();
-      testTask.getLogger().info("Quarkus application stopped.");
+      task.getLogger().info("Quarkus application stopped.");
     } catch (Exception e) {
       throw new RuntimeException(e);
     } finally {
