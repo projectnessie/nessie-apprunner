@@ -24,6 +24,7 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
 
@@ -44,7 +45,12 @@ public class QuarkusAppExtension {
   private final Property<Long> timeToListenUrlMillis;
   private final Property<Long> timeToStopMillis;
 
-  public QuarkusAppExtension(Project project) {
+  private final Provider<NessieRunnerService> nessieRunnerServiceProvider;
+
+  public QuarkusAppExtension(
+      Project project, Provider<NessieRunnerService> nessieRunnerServiceProvider) {
+    this.nessieRunnerServiceProvider = nessieRunnerServiceProvider;
+
     environment = project.getObjects().mapProperty(String.class, String.class);
     environmentNonInput = project.getObjects().mapProperty(String.class, String.class);
     systemProperties =
@@ -138,7 +144,8 @@ public class QuarkusAppExtension {
 
   public <T extends Task> QuarkusAppExtension includeTasks(
       TaskCollection<T> taskCollection, Action<T> postStartAction) {
-    taskCollection.configureEach(new NessieQuarkusTaskConfigurer<>(postStartAction));
+    taskCollection.configureEach(
+        new NessieQuarkusTaskConfigurer<>(postStartAction, nessieRunnerServiceProvider));
     return this;
   }
 
@@ -148,7 +155,8 @@ public class QuarkusAppExtension {
 
   public <T extends Task> QuarkusAppExtension includeTask(
       TaskProvider<T> taskProvider, Action<T> postStartAction) {
-    taskProvider.configure(new NessieQuarkusTaskConfigurer<>(postStartAction));
+    taskProvider.configure(
+        new NessieQuarkusTaskConfigurer<>(postStartAction, nessieRunnerServiceProvider));
     return this;
   }
 }
