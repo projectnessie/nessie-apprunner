@@ -17,6 +17,7 @@ package org.projectnessie.quarkus.gradle;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.provider.Provider;
 
 public class QuarkusAppPlugin implements Plugin<Project> {
 
@@ -36,6 +37,14 @@ public class QuarkusAppPlugin implements Plugin<Project> {
                     .setDescription(
                         "References the Nessie-Quarkus server dependency, only a single dependency allowed."));
 
-    project.getExtensions().create(EXTENSION_NAME, QuarkusAppExtension.class, project);
+    Provider<NessieRunnerService> runnerService =
+        project
+            .getGradle()
+            .getSharedServices()
+            .registerIfAbsent("nessie-quarkus-runner", NessieRunnerService.class, spec -> {});
+
+    project
+        .getExtensions()
+        .create(EXTENSION_NAME, QuarkusAppExtension.class, project, runnerService);
   }
 }

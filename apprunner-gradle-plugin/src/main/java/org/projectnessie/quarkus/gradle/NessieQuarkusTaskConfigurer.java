@@ -22,6 +22,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskInputs;
 
@@ -29,9 +30,12 @@ import org.gradle.api.tasks.TaskInputs;
 public class NessieQuarkusTaskConfigurer<T extends Task> implements Action<T> {
 
   private final Action<T> postStartAction;
+  private final Provider<NessieRunnerService> nessieRunnerServiceProvider;
 
-  public NessieQuarkusTaskConfigurer(Action<T> postStartAction) {
+  public NessieQuarkusTaskConfigurer(
+      Action<T> postStartAction, Provider<NessieRunnerService> nessieRunnerServiceProvider) {
     this.postStartAction = postStartAction;
+    this.nessieRunnerServiceProvider = nessieRunnerServiceProvider;
   }
 
   @SuppressWarnings(
@@ -62,10 +66,12 @@ public class NessieQuarkusTaskConfigurer<T extends Task> implements Action<T> {
 
     // Start the Nessie-Quarkus-App only when the Test task actually runs
 
+    task.usesService(nessieRunnerServiceProvider);
     task.doFirst(
         new Action<Task>() {
           @Override
           public void execute(Task ignore) {
+            nessieRunnerServiceProvider.get().register(processState, task);
             processState.quarkusStart(task);
             if (postStartAction != null) {
               postStartAction.execute(task);
@@ -76,7 +82,7 @@ public class NessieQuarkusTaskConfigurer<T extends Task> implements Action<T> {
         new Action<Task>() {
           @Override
           public void execute(Task ignore) {
-            processState.quarkusStop(task);
+            nessieRunnerServiceProvider.get().finished(task);
           }
         });
   }

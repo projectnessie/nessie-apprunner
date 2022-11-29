@@ -39,6 +39,7 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.process.JavaForkOptions;
 import org.projectnessie.quarkus.runner.JavaVM;
 import org.projectnessie.quarkus.runner.ProcessHandler;
+import org.slf4j.Logger;
 
 public class ProcessState {
 
@@ -202,15 +203,15 @@ public class ProcessState {
     }
   }
 
-  void quarkusStop(Task task) {
+  void quarkusStop(Logger logger) {
     if (processHandler == null) {
-      task.getLogger().debug("No application found.");
+      logger.debug("No application found.");
       return;
     }
 
     try {
       processHandler.stop();
-      task.getLogger().info("Quarkus application stopped.");
+      logger.info("Quarkus application stopped.");
     } catch (Exception e) {
       throw new RuntimeException(e);
     } finally {
