@@ -62,27 +62,27 @@ public class NessieQuarkusTaskConfigurer<T extends Task> implements Action<T> {
 
     inputs.files(appConfig);
 
-    ProcessState processState = new ProcessState();
-
     // Start the Nessie-Quarkus-App only when the Test task actually runs
 
     task.usesService(nessieRunnerServiceProvider);
     task.doFirst(
         new Action<Task>() {
+          @SuppressWarnings("unchecked")
           @Override
-          public void execute(Task ignore) {
-            nessieRunnerServiceProvider.get().register(processState, task);
-            processState.quarkusStart(task);
+          public void execute(Task t) {
+            ProcessState processState = new ProcessState();
+            nessieRunnerServiceProvider.get().register(processState, t);
+            processState.quarkusStart(t);
             if (postStartAction != null) {
-              postStartAction.execute(task);
+              postStartAction.execute((T) t);
             }
           }
         });
     task.doLast(
         new Action<Task>() {
           @Override
-          public void execute(Task ignore) {
-            nessieRunnerServiceProvider.get().finished(task);
+          public void execute(Task t) {
+            nessieRunnerServiceProvider.get().finished(t);
           }
         });
   }
