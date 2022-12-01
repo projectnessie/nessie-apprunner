@@ -52,6 +52,8 @@ public abstract class NessieRunnerService
     synchronized (processes) {
       state = processes.remove(task);
     }
-    state.quarkusStop(task.getLogger());
+    if (state != null) {
+      state.quarkusStop(task.getLogger());
+    }
   }
 }

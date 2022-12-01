@@ -15,6 +15,7 @@
  */
 package org.projectnessie.quarkus.gradle;
 
+import java.util.concurrent.ThreadLocalRandom;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.provider.Provider;
@@ -41,7 +42,13 @@ public class QuarkusAppPlugin implements Plugin<Project> {
         project
             .getGradle()
             .getSharedServices()
-            .registerIfAbsent("nessie-quarkus-runner", NessieRunnerService.class, spec -> {});
+            .registerIfAbsent(
+                // Make the build-service unique per project to prevent Gradle class-cast
+                // exceptions when the plugin's reloaded within the same build using different
+                // class loaders.
+                "nessie-quarkus-runner-" + ThreadLocalRandom.current().nextLong(),
+                NessieRunnerService.class,
+                spec -> {});
 
     project
         .getExtensions()
