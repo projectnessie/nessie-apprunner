@@ -142,7 +142,7 @@
 
     <!-- Version properties -->
     <apprunner.version>${project.version}</apprunner.version>
-    <assertj.version>3.24.0</assertj.version>
+    <assertj.version>3.24.1</assertj.version>
     <checkstyle.version>10.6.0</checkstyle.version>
     <errorprone-slf4j.version>0.1.17</errorprone-slf4j.version>
     <google-error-prone.version>2.17.0</google-error-prone.version>
