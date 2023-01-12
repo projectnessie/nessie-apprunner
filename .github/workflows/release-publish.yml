@@ -48,7 +48,7 @@ jobs:
     steps:
 
     # GH doesn't provide just the tag name, so this step strips `/refs/tags/apprunner-` from `GITHUB_REF`
-    # and provides the output `VERSION` or, in case of a manual run, uses the input `releaseTag` as
+    # and provides the env var `REL_VERSION` or, in case of a manual run, uses the input `releaseTag` as
     # the input tag name.
     - name: Get release version
       id: get_version
@@ -60,7 +60,7 @@ jobs:
         fi
         # check if tag matches patterns like apprunner-0.5, apprunner-0.10.4.3-alpha1, etc
         if [[ ${V} =~ ^apprunner-[0-9]+[.][0-9.]*[0-9](-[a-zA-Z0-9]+)?$ ]]; then
-          echo ::set-output name=VERSION::${V/apprunner-}
+          echo "REL_VERSION=${V/apprunner-}" >> ${GITHUB_ENV}
         else
           echo "Tag must start with apprunner- followed by a valid version (got tag ${V}, ref is ${GITHUB_REF} )"
           exit 1
@@ -89,7 +89,7 @@ jobs:
     - name: Publish Maven artifacts for release
       id: build_maven
       env:
-        RELEASE_VERSION: ${{ steps.get_version.outputs.VERSION }}
+        RELEASE_VERSION: ${{ env.REL_VERSION }}
         MAVEN_USERNAME: ${{ secrets.OSSRH_ACCESS_ID }}
         MAVEN_OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
         MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
