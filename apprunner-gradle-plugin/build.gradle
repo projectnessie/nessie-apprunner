@@ -61,6 +61,7 @@ gradlePlugin {
       implementationClass = 'org.projectnessie.quarkus.gradle.QuarkusAppPlugin'
       displayName = 'Quarkus App Runner'
       description = 'Start and stop a quarkus app as gradle tasks for integration testing'
+      tags.addAll(['test', 'integration', 'quarkus'])
     }
   }
 }
@@ -112,12 +113,6 @@ task codeCoverageReport(type:JacocoReport) {
 
 check {
   dependsOn codeCoverageReport
-}
-
-pluginBundle {
-  website = 'https://projectnessie.org'
-  vcsUrl = 'https://github.com/projectnessie/nessie'
-  tags = ['test', 'integration', 'quarkus']
 }
 
 publishing {
