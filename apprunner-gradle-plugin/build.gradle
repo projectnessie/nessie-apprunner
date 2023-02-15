@@ -64,6 +64,8 @@ gradlePlugin {
       tags.addAll(['test', 'integration', 'quarkus'])
     }
   }
+  website.set('https://projectnessie.org')
+  vcsUrl.set('https://github.com/projectnessie/nessie')
 }
 
 repositories {
