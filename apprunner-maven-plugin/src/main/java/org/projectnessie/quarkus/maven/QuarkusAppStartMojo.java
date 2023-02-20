@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -48,19 +47,6 @@ import org.projectnessie.quarkus.runner.ProcessHandler;
 /** Starting Quarkus application. */
 @Mojo(name = "start", requiresDependencyResolution = ResolutionScope.NONE, threadSafe = true)
 public class QuarkusAppStartMojo extends AbstractQuarkusAppMojo {
-  /*
-   * Execution lock across multiple executions of quarkus app.
-   *
-   * Quarkus application might modify system properties to reflect dynamic
-   * configuration values. However it is not possible for each execution to have
-   * its own properties.
-   * Lock is designed to make sure only one application is started and system properties
-   * retrieved, while still allowing multiple applications to run concurrently.
-   *
-   * TODO: the lock is not truly global since plugins are maintained in separate classloaders.
-   * It should be changed to something attached to the Maven session instead.
-   */
-  private static final Object START_LOCK = new Object();
 
   /**
    * The entry point to Aether, i.e. the component doing all the work.
@@ -131,7 +117,7 @@ public class QuarkusAppStartMojo extends AbstractQuarkusAppMojo {
   @Parameter(defaultValue = "quarkus.http.test-url")
   private String httpListenUrlProperty;
 
-  @Parameter(defaultValue = "${project.build.directory}/nessie-quarkus")
+  @Parameter(defaultValue = "${build.directory}/nessie-quarkus")
   private String workingDirectory;
 
   @Parameter private long timeToListenUrlMillis;
@@ -148,7 +134,7 @@ public class QuarkusAppStartMojo extends AbstractQuarkusAppMojo {
   }
 
   @Override
-  public void execute() throws MojoExecutionException, MojoFailureException {
+  public void execute() throws MojoExecutionException {
     if (isSkipped()) {
       getLog().debug("Execution is skipped");
       return;

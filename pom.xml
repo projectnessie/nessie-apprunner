@@ -24,8 +24,8 @@
   <version>0.28.2-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>Nessie</name>
-  <description>Transactional Catalog for Data Lakes</description>
+  <name>Nessie Apprunner</name>
+  <description>Maven and Gradle plugins to use Nessie in integration tests</description>
   <url>https://projectnessie.org</url>
   <organization>
     <name>Project Nessie</name>
@@ -304,11 +304,11 @@
           <configuration>
             <argLine>@{argLine} -Dfile.encoding=UTF-8</argLine>
             <trimStackTrace>false</trimStackTrace>
-            <systemProperties>
+            <systemPropertyVariables>
               <user.language>en</user.language>
               <user.country>US</user.country>
               <user.variant/>
-            </systemProperties>
+            </systemPropertyVariables>
           </configuration>
         </plugin>
         <plugin>
@@ -318,11 +318,11 @@
           <configuration>
             <argLine>@{argLine} -Dfile.encoding=UTF-8</argLine>
             <trimStackTrace>false</trimStackTrace>
-            <systemProperties>
+            <systemPropertyVariables>
               <user.language>en</user.language>
               <user.country>US</user.country>
               <user.variant/>
-            </systemProperties>
+            </systemPropertyVariables>
             <useModulePath>false</useModulePath>
           </configuration>
         </plugin>
@@ -438,7 +438,8 @@
           <testSourceDirectories>
             <testSourceDirectory>${project.basedir}/src/test/java</testSourceDirectory>
           </testSourceDirectories>
-          <encoding>UTF-8</encoding>
+          <inputEncoding>UTF-8</inputEncoding>
+          <outputEncoding>UTF-8</outputEncoding>
           <failsOnError>true</failsOnError>
           <failOnViolation>true</failOnViolation>
           <violationSeverity>warning</violationSeverity>
@@ -465,7 +466,16 @@
         <artifactId>license-maven-plugin</artifactId>
         <configuration>
           <skip>${skipLicense}</skip>
-          <inlineHeader>
+          <properties>
+            <owner>Dremio</owner>
+            <project.inceptionYear>2020</project.inceptionYear>
+          </properties>
+          <failIfUnknown>true</failIfUnknown>
+          <useDefaultExcludes>false</useDefaultExcludes>
+
+          <licenseSets>
+            <licenseSet>
+              <inlineHeader>
 Copyright (C) ${project.inceptionYear} ${owner}
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -479,171 +489,163 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-          </inlineHeader>
-          <properties>
-            <owner>Dremio</owner>
-            <project.inceptionYear>2020</project.inceptionYear>
-          </properties>
-          <project>
-            <inceptionYear>2020</inceptionYear>
-          </project>
-          <failIfUnknown>true</failIfUnknown>
-          <useDefaultExcludes>false</useDefaultExcludes>
+              </inlineHeader>
+              <includes>
+                <include>src/**</include>
+                <include>*</include>
+              </includes>
+              <excludes>
+                <exclude>**/.mvn/**</exclude>
+                <exclude>mvnw</exclude>
+                <exclude>mvnw.cmd</exclude>
+                <exclude>**/*.java</exclude>
+                <exclude>**/*.scala</exclude>
+                <!-- default excludes (minus some items) from https://github.com/mycila/license-maven-plugin/blob/61f65ac65bfc38246a15fb84083796c5e3afb053/license-maven-plugin/src/main/java/com/mycila/maven/plugin/license/Default.java -->
+                <exclude>**/*~</exclude>
+                <exclude>**/000000_0</exclude>
+                <exclude>**/#*#</exclude>
+                <exclude>**/.#*</exclude>
+                <exclude>**/%*%</exclude>
+                <exclude>**/._*</exclude>
+                <exclude>**/.repository/**</exclude>
+                <exclude>**/CVS</exclude>
+                <exclude>**/CVS/**</exclude>
+                <exclude>**/.cvsignore</exclude>
+                <exclude>**/RCS</exclude>
+                <exclude>**/RCS/**</exclude>
+                <exclude>**/SCCS</exclude>
+                <exclude>**/SCCS/**</exclude>
+                <exclude>**/vssver.scc</exclude>
+                <exclude>**/.svn</exclude>
+                <exclude>**/.svn/**</exclude>
+                <exclude>**/.arch-ids</exclude>
+                <exclude>**/.arch-ids/**</exclude>
+                <exclude>**/.bzr</exclude>
+                <exclude>**/.bzr/**</exclude>
+                <exclude>**/.MySCMServerInfo</exclude>
+                <exclude>**/.DS_Store</exclude>
+                <exclude>**/.metadata</exclude>
+                <exclude>**/.metadata/**</exclude>
+                <exclude>**/.hg</exclude>
+                <exclude>**/.hg/**</exclude>
+                <exclude>**/.hgignore</exclude>
+                <exclude>**/.git</exclude>
+                <exclude>**/.git/**</exclude>
+                <exclude>**/.gitignore</exclude>
+                <exclude>**/.gitmodules</exclude>
+                <exclude>**/BitKeeper</exclude>
+                <exclude>**/BitKeeper/**</exclude>
+                <exclude>**/ChangeSet</exclude>
+                <exclude>**/ChangeSet/**</exclude>
+                <exclude>**/_darcs</exclude>
+                <exclude>**/_darcs/**</exclude>
+                <exclude>**/.darcsrepo</exclude>
+                <exclude>**/.darcsrepo/**</exclude>
+                <exclude>**/-darcs-backup*</exclude>
+                <exclude>**/.darcs-temp-mail</exclude>
+                <!-- <exclude>**/target/**</exclude> want this for add-license-for-java-generated-from-proto -->
+                <exclude>**/test-output/**</exclude>
+                <exclude>**/release.properties</exclude>
+                <exclude>**/dependency-reduced-pom.xml</exclude>
+                <exclude>**/release-pom.xml</exclude>
+                <exclude>**/pom.xml.releaseBackup</exclude>
+                <exclude>**/cobertura.ser</exclude>
+                <exclude>**/.clover/**</exclude>
+                <exclude>**/.classpath</exclude>
+                <exclude>**/.factorypath</exclude>
+                <exclude>**/.project</exclude>
+                <exclude>**/.settings/**</exclude>
+                <exclude>**/*.iml</exclude>
+                <exclude>**/*.ipr</exclude>
+                <exclude>**/*.iws</exclude>
+                <exclude>.idea/**</exclude>
+                <exclude>**/nb-configuration.xml</exclude>
+                <exclude>**/MANIFEST.MF</exclude>
+                <exclude>**/*.jpg</exclude>
+                <exclude>**/*.png</exclude>
+                <exclude>**/*.gif</exclude>
+                <exclude>**/*.ico</exclude>
+                <exclude>**/*.bmp</exclude>
+                <exclude>**/*.tiff</exclude>
+                <exclude>**/*.tif</exclude>
+                <exclude>**/*.cr2</exclude>
+                <exclude>**/*.xcf</exclude>
+                <exclude>**/*.class</exclude>
+                <exclude>**/*.exe</exclude>
+                <exclude>**/*.dll</exclude>
+                <exclude>**/*.so</exclude>
+                <exclude>**/*.md5</exclude>
+                <exclude>**/*.sha1</exclude>
+                <exclude>**/*.jar</exclude>
+                <exclude>**/*.zip</exclude>
+                <exclude>**/*.rar</exclude>
+                <exclude>**/*.tar</exclude>
+                <exclude>**/*.tar.gz</exclude>
+                <exclude>**/*.tar.bz2</exclude>
+                <exclude>**/*.gz</exclude>
+                <exclude>**/*.xls</exclude>
+                <exclude>**/META-INF/services/**</exclude>
+                <exclude>**/META-INF/gradle-plugins/**</exclude>
+                <exclude>**/*.md</exclude>
+                <exclude>**/*.xls</exclude>
+                <exclude>**/*.doc</exclude>
+                <exclude>**/*.odt</exclude>
+                <exclude>**/*.ods</exclude>
+                <exclude>**/*.pdf</exclude>
+                <exclude>**/.travis.yml</exclude>
+                <exclude>**/*.swf</exclude>
+                <exclude>**/*.json</exclude>
+                <!-- <exclude>**/*.svg</exclude> -->
+                <exclude>**/*.eot</exclude>
+                <exclude>**/*.ttf</exclude>
+                <exclude>**/*.woff</exclude>
+                <exclude>**/*.xlsx</exclude>
+                <exclude>**/*.docx</exclude>
+                <exclude>**/*.ppt</exclude>
+                <exclude>**/*.pptx</exclude>
+                <exclude>**/*.patch</exclude>
+                <!-- end default excludes -->
 
-          <includes>
-            <include>src/**</include>
-            <include>*</include>
-          </includes>
-          <excludes>
-            <exclude>**/.mvn/**</exclude>
-            <exclude>mvnw</exclude>
-            <exclude>mvnw.cmd</exclude>
-            <exclude>**/*.java</exclude>
-            <exclude>**/*.scala</exclude>
-            <!-- default excludes (minus some items) from https://github.com/mycila/license-maven-plugin/blob/61f65ac65bfc38246a15fb84083796c5e3afb053/license-maven-plugin/src/main/java/com/mycila/maven/plugin/license/Default.java -->
-            <exclude>**/*~</exclude>
-            <exclude>**/000000_0</exclude>
-            <exclude>**/#*#</exclude>
-            <exclude>**/.#*</exclude>
-            <exclude>**/%*%</exclude>
-            <exclude>**/._*</exclude>
-            <exclude>**/.repository/**</exclude>
-            <exclude>**/CVS</exclude>
-            <exclude>**/CVS/**</exclude>
-            <exclude>**/.cvsignore</exclude>
-            <exclude>**/RCS</exclude>
-            <exclude>**/RCS/**</exclude>
-            <exclude>**/SCCS</exclude>
-            <exclude>**/SCCS/**</exclude>
-            <exclude>**/vssver.scc</exclude>
-            <exclude>**/.svn</exclude>
-            <exclude>**/.svn/**</exclude>
-            <exclude>**/.arch-ids</exclude>
-            <exclude>**/.arch-ids/**</exclude>
-            <exclude>**/.bzr</exclude>
-            <exclude>**/.bzr/**</exclude>
-            <exclude>**/.MySCMServerInfo</exclude>
-            <exclude>**/.DS_Store</exclude>
-            <exclude>**/.metadata</exclude>
-            <exclude>**/.metadata/**</exclude>
-            <exclude>**/.hg</exclude>
-            <exclude>**/.hg/**</exclude>
-            <exclude>**/.hgignore</exclude>
-            <exclude>**/.git</exclude>
-            <exclude>**/.git/**</exclude>
-            <exclude>**/.gitignore</exclude>
-            <exclude>**/.gitmodules</exclude>
-            <exclude>**/BitKeeper</exclude>
-            <exclude>**/BitKeeper/**</exclude>
-            <exclude>**/ChangeSet</exclude>
-            <exclude>**/ChangeSet/**</exclude>
-            <exclude>**/_darcs</exclude>
-            <exclude>**/_darcs/**</exclude>
-            <exclude>**/.darcsrepo</exclude>
-            <exclude>**/.darcsrepo/**</exclude>
-            <exclude>**/-darcs-backup*</exclude>
-            <exclude>**/.darcs-temp-mail</exclude>
-            <!-- <exclude>**/target/**</exclude> want this for add-license-for-java-generated-from-proto -->
-            <exclude>**/test-output/**</exclude>
-            <exclude>**/release.properties</exclude>
-            <exclude>**/dependency-reduced-pom.xml</exclude>
-            <exclude>**/release-pom.xml</exclude>
-            <exclude>**/pom.xml.releaseBackup</exclude>
-            <exclude>**/cobertura.ser</exclude>
-            <exclude>**/.clover/**</exclude>
-            <exclude>**/.classpath</exclude>
-            <exclude>**/.factorypath</exclude>
-            <exclude>**/.project</exclude>
-            <exclude>**/.settings/**</exclude>
-            <exclude>**/*.iml</exclude>
-            <exclude>**/*.ipr</exclude>
-            <exclude>**/*.iws</exclude>
-            <exclude>.idea/**</exclude>
-            <exclude>**/nb-configuration.xml</exclude>
-            <exclude>**/MANIFEST.MF</exclude>
-            <exclude>**/*.jpg</exclude>
-            <exclude>**/*.png</exclude>
-            <exclude>**/*.gif</exclude>
-            <exclude>**/*.ico</exclude>
-            <exclude>**/*.bmp</exclude>
-            <exclude>**/*.tiff</exclude>
-            <exclude>**/*.tif</exclude>
-            <exclude>**/*.cr2</exclude>
-            <exclude>**/*.xcf</exclude>
-            <exclude>**/*.class</exclude>
-            <exclude>**/*.exe</exclude>
-            <exclude>**/*.dll</exclude>
-            <exclude>**/*.so</exclude>
-            <exclude>**/*.md5</exclude>
-            <exclude>**/*.sha1</exclude>
-            <exclude>**/*.jar</exclude>
-            <exclude>**/*.zip</exclude>
-            <exclude>**/*.rar</exclude>
-            <exclude>**/*.tar</exclude>
-            <exclude>**/*.tar.gz</exclude>
-            <exclude>**/*.tar.bz2</exclude>
-            <exclude>**/*.gz</exclude>
-            <exclude>**/*.xls</exclude>
-            <exclude>**/META-INF/services/**</exclude>
-            <exclude>**/META-INF/gradle-plugins/**</exclude>
-            <exclude>**/*.md</exclude>
-            <exclude>**/*.xls</exclude>
-            <exclude>**/*.doc</exclude>
-            <exclude>**/*.odt</exclude>
-            <exclude>**/*.ods</exclude>
-            <exclude>**/*.pdf</exclude>
-            <exclude>**/.travis.yml</exclude>
-            <exclude>**/*.swf</exclude>
-            <exclude>**/*.json</exclude>
-            <!-- <exclude>**/*.svg</exclude> -->
-            <exclude>**/*.eot</exclude>
-            <exclude>**/*.ttf</exclude>
-            <exclude>**/*.woff</exclude>
-            <exclude>**/*.xlsx</exclude>
-            <exclude>**/*.docx</exclude>
-            <exclude>**/*.ppt</exclude>
-            <exclude>**/*.pptx</exclude>
-            <exclude>**/*.patch</exclude>
-            <!-- end default excludes -->
+                <!-- by file extension -->
+                <exclude>**/*.log</exclude>
+                <exclude>**/*.txt</exclude>
+                <exclude>**/*.csv</exclude>
+                <exclude>**/*.tsv</exclude>
+                <exclude>**/*.parquet</exclude>
+                <exclude>**/*.jks</exclude>
+                <exclude>**/*.nonformat</exclude>
+                <exclude>**/*.gzip</exclude>
+                <exclude>**/*.k</exclude>
+                <exclude>**/*.q</exclude>
+                <exclude>**/*.dat</exclude>
+                <exclude>**/*.pem</exclude>
 
-            <!-- by file extension -->
-            <exclude>**/*.log</exclude>
-            <exclude>**/*.txt</exclude>
-            <exclude>**/*.csv</exclude>
-            <exclude>**/*.tsv</exclude>
-            <exclude>**/*.parquet</exclude>
-            <exclude>**/*.jks</exclude>
-            <exclude>**/*.nonformat</exclude>
-            <exclude>**/*.gzip</exclude>
-            <exclude>**/*.k</exclude>
-            <exclude>**/*.q</exclude>
-            <exclude>**/*.dat</exclude>
-            <exclude>**/*.pem</exclude>
+                <!-- by file name -->
+                <exclude>**/Jenkinsfile</exclude>
+                <exclude>**/LICENSE</exclude>
+                <exclude>**/NOTICE</exclude>
+                <exclude>**/postinstall</exclude>
+                <exclude>**/.babelrc</exclude>
+                <exclude>**/.checkstyle</exclude>
+                <exclude>**/.eslintcache</exclude>
+                <exclude>**/.eslintignore</exclude>
+                <exclude>**/.eslintrc</exclude>
+                <exclude>**/git.properties</exclude>
+                <exclude>**/pom.xml.versionsBackup</exclude>
+                <exclude>**/q</exclude>
+                <exclude>**/c.java</exclude>
+                <exclude>**/swagger-ui/**</exclude>
+                <exclude>**/gradlew</exclude>
+                <exclude>**/tsconfig.tsbuildinfo</exclude>
 
-            <!-- by file name -->
-            <exclude>**/Jenkinsfile</exclude>
-            <exclude>**/LICENSE</exclude>
-            <exclude>**/NOTICE</exclude>
-            <exclude>**/postinstall</exclude>
-            <exclude>**/.babelrc</exclude>
-            <exclude>**/.checkstyle</exclude>
-            <exclude>**/.eslintcache</exclude>
-            <exclude>**/.eslintignore</exclude>
-            <exclude>**/.eslintrc</exclude>
-            <exclude>**/git.properties</exclude>
-            <exclude>**/pom.xml.versionsBackup</exclude>
-            <exclude>**/q</exclude>
-            <exclude>**/c.java</exclude>
-            <exclude>**/swagger-ui/**</exclude>
-            <exclude>**/gradlew</exclude>
-            <exclude>**/tsconfig.tsbuildinfo</exclude>
-
-            <!-- by directory name -->
-            <exclude>**/node_modules/**</exclude>
-            <exclude>**/.idea/**</exclude>
-            <exclude>**/db/**</exclude>
-            <exclude>**/*.ipynb</exclude>
-          </excludes>
+                <!-- by directory name -->
+                <exclude>**/node_modules/**</exclude>
+                <exclude>**/.idea/**</exclude>
+                <exclude>**/db/**</exclude>
+                <exclude>**/*.ipynb</exclude>
+              </excludes>
+            </licenseSet>
+          </licenseSets>
           <mapping>
             <DataSourceRegister>SCRIPT_STYLE</DataSourceRegister>
             <properties>SCRIPT_STYLE</properties>
