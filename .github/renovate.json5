@@ -6,13 +6,13 @@
 
   packageRules: [
     {
-      matchManagers: ["maven", "gradle", "gradle-wrapper"],
+      matchManagers: ["maven", "maven-wrapper", "gradle", "gradle-wrapper"],
       "labels": ["dependencies", "java"],
     },
 
     // Check for updates, merge automatically
     {
-      matchManagers: ["maven", "gradle", "gradle-wrapper"],
+      matchManagers: ["maven", "maven-wrapper", "gradle", "gradle-wrapper"],
       matchUpdateTypes: ["minor", "patch"],
       automerge: true,
       platformAutomerge: true,
@@ -20,7 +20,7 @@
 
     // Check for major updates, but do not merge automatically
     {
-      matchManagers: ["maven", "gradle", "gradle-wrapper"],
+      matchManagers: ["maven", "maven-wrapper", "gradle", "gradle-wrapper"],
       matchUpdateTypes: ["major"],
       automerge: false,
     },
