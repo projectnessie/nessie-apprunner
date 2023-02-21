@@ -17,9 +17,6 @@ package org.projectnessie.quarkus.mavenit;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.io.IOException;
-
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.projectnessie.client.api.NessieApiV1;
 import org.projectnessie.client.http.HttpClientBuilder;
@@ -28,13 +25,13 @@ import org.projectnessie.model.Branch;
 /**
  * This is not a test for the plugin itself, this is a test that is run BY the test for the plugin.
  */
-class TestSimulatingTestUsingThePlugin {
+class ITSimulatingTestUsingThePlugin {
   @Test
   void pingNessie() throws Exception {
     String port = System.getProperty("quarkus.http.test-port");
-    assertNotNull(port);
+    assertNotNull(port, "quarkus.http.test-port");
     String url = System.getProperty("quarkus.http.test-url");
-    assertNotNull(url);
+    assertNotNull(url, "quarkus.http.test-url");
 
     String uri = String.format("http://127.0.0.1:%s/api/v1", port);
 

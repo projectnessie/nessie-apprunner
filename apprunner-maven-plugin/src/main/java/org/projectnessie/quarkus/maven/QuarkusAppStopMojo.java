@@ -16,7 +16,6 @@
 package org.projectnessie.quarkus.maven;
 
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.projectnessie.quarkus.runner.ProcessHandler;
@@ -26,7 +25,7 @@ import org.projectnessie.quarkus.runner.ProcessHandler;
 public class QuarkusAppStopMojo extends AbstractQuarkusAppMojo {
   /** Mojo execution. */
   @Override
-  public void execute() throws MojoExecutionException, MojoFailureException {
+  public void execute() throws MojoExecutionException {
     if (isSkipped()) {
       getLog().info("Stopping Quarkus application.");
       return;
