@@ -58,6 +58,6 @@ jobs:
           **/build/test-results/*
     - uses: codecov/codecov-action@v3
       with:
-        fail_ci_if_error: true
+        fail_ci_if_error: false
         flags: java
         files: code-coverage/target/site/jacoco-aggregate-all/jacoco.xml,apprunner-gradle-plugin/build/reports/jacoco/codeCoverageReport/codeCoverageReport.xml
