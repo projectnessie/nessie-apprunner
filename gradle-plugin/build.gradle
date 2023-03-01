@@ -57,8 +57,8 @@ gradlePlugin {
     simplePlugin {
       id = 'org.projectnessie'
       implementationClass = 'org.projectnessie.nessierunner.gradle.NessieRunnerPlugin'
-      displayName = 'Quarkus App Runner'
-      description = 'Start and stop a quarkus app as gradle tasks for integration testing'
+      displayName = 'Nessie Runner'
+      description = 'Start and stop a Nessie server for integration testing'
       tags.addAll(['test', 'integration', 'quarkus'])
     }
   }

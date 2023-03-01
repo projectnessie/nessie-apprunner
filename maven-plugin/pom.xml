@@ -28,7 +28,7 @@
   <artifactId>nessie-runner-maven-plugin</artifactId>
   <packaging>maven-plugin</packaging>
 
-  <name>Nessie Quarkus Application Runner Maven Plugin</name>
+  <name>Nessie Runner Maven Plugin</name>
 
   <dependencies>
     <dependency>

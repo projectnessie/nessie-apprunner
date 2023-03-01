@@ -27,7 +27,7 @@
 
   <artifactId>nessie-runner-common</artifactId>
 
-  <name>Nessie Quarkus Runner Common</name>
+  <name>Nessie Runner Common</name>
 
   <dependencies>
     <dependency>
