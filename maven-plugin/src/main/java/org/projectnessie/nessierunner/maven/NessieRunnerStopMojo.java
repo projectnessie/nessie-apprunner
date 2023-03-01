@@ -22,7 +22,7 @@ import org.projectnessie.nessierunner.common.ProcessHandler;
 
 /** Stop Quarkus application. */
 @Mojo(name = "stop", requiresDependencyResolution = ResolutionScope.NONE, threadSafe = true)
-public class QuarkusAppStopMojo extends AbstractQuarkusAppMojo {
+public class NessieRunnerStopMojo extends AbstractNessieRunnerMojo {
   /** Mojo execution. */
   @Override
   public void execute() throws MojoExecutionException {

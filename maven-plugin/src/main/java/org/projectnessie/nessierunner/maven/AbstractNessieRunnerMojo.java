@@ -24,7 +24,7 @@ import org.projectnessie.nessierunner.common.ProcessHandler;
 /*
  * Base class to share configuration between mojo.
  */
-abstract class AbstractQuarkusAppMojo extends AbstractMojo {
+abstract class AbstractNessieRunnerMojo extends AbstractMojo {
   private static final String CONTEXT_KEY = "nessie.quarkus.app";
 
   /** Maven project. */

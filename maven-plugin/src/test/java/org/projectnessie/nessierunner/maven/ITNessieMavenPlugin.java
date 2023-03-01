@@ -80,6 +80,6 @@ class ITNessieMavenPlugin {
         .isFailure()
         .out()
         .error()
-        .anyMatch(s -> s.contains(QuarkusAppStartMojo.noJavaVMMessage(42)));
+        .anyMatch(s -> s.contains(NessieRunnerStartMojo.noJavaVMMessage(42)));
   }
 }

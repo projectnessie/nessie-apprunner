@@ -47,7 +47,7 @@ import org.projectnessie.nessierunner.common.ProcessHandler;
 /** Starting Quarkus application. */
 @Mojo(name = "start", requiresDependencyResolution = ResolutionScope.NONE, threadSafe = true)
 @SuppressWarnings("InvalidBlockTag")
-public class QuarkusAppStartMojo extends AbstractQuarkusAppMojo {
+public class NessieRunnerStartMojo extends AbstractNessieRunnerMojo {
 
   /**
    * The entry point to Aether, i.e. the component doing all the work.

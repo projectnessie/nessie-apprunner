@@ -37,7 +37,7 @@ import org.junit.jupiter.api.io.TempDir;
  * Test for the {@link NessieRunnerPlugin}, which basically simulates what the {@code build.gradle}
  * in Apache Iceberg does.
  */
-class TestQuarkusApp {
+class TestNessieRunnerPlugin {
   @TempDir Path testProjectDir;
 
   Path buildFile;
