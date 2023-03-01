@@ -45,7 +45,7 @@ jobs:
 
     - name: Build with Gradle
       run: ./gradlew --rerun-tasks --no-daemon --info build
-      working-directory: ./apprunner-gradle-plugin
+      working-directory: ./gradle-plugin
 
     - name: Capture test results
       uses: actions/upload-artifact@v3
@@ -60,4 +60,4 @@ jobs:
       with:
         fail_ci_if_error: false
         flags: java
-        files: code-coverage/target/site/jacoco-aggregate-all/jacoco.xml,apprunner-gradle-plugin/build/reports/jacoco/codeCoverageReport/codeCoverageReport.xml
+        files: code-coverage/target/site/jacoco-aggregate-all/jacoco.xml,gradle-plugin/build/reports/jacoco/codeCoverageReport/codeCoverageReport.xml
