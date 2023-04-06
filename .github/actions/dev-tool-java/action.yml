@@ -29,14 +29,6 @@ runs:
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml', '**/maven-wrapper.properties') }}
         restore-keys: |
           ${{ runner.os }}-maven-
-    - name: Cache Gradle packages
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle', '**/gradle-wrapper.properties') }}
-        restore-keys: ${{ runner.os }}-gradle-
 
     - name: Set up Maven toolchains.xml
       shell: bash

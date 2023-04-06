@@ -16,7 +16,6 @@
 package org.projectnessie.nessierunner.gradle;
 
 import java.io.File;
-import java.util.Collections;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -53,11 +52,7 @@ public class NessieRunnerExtension {
 
     environment = project.getObjects().mapProperty(String.class, String.class);
     environmentNonInput = project.getObjects().mapProperty(String.class, String.class);
-    systemProperties =
-        project
-            .getObjects()
-            .mapProperty(String.class, String.class)
-            .convention(Collections.singletonMap("quarkus.http.port", "0"));
+    systemProperties = project.getObjects().mapProperty(String.class, String.class);
     systemPropertiesNonInput = project.getObjects().mapProperty(String.class, String.class);
     arguments = project.getObjects().listProperty(String.class);
     argumentsNonInput = project.getObjects().listProperty(String.class);

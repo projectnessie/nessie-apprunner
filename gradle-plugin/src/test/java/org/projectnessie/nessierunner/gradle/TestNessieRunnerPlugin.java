@@ -128,7 +128,7 @@ class TestNessieRunnerPlugin {
         .isEqualTo(TaskOutcome.FAILED);
     assertThat(Arrays.asList(result.getOutput().split("\n")))
         .contains(
-            "> Dependency org.projectnessie:nessie-quarkus:runner missing in configuration nessieQuarkusServer");
+            "> Neither does the configuration nessieQuarkusServer contain exactly one dependency (preferably org.projectnessie:nessie-quarkus:runner), nor is the runner jar specified in the nessieQuarkusApp extension.");
   }
 
   /**
@@ -160,13 +160,12 @@ class TestNessieRunnerPlugin {
         .isEqualTo(TaskOutcome.FAILED);
     assertThat(Arrays.asList(result.getOutput().split("\n")))
         .contains(
-            "> Configuration nessieQuarkusServer must only contain the org.projectnessie:nessie-quarkus:runner dependency, "
-                + "but resolves to these artifacts: "
-                + "org.projectnessie:nessie-quarkus:"
+            "> Expected configuration nessieQuarkusServer to resolve to exactly one artifact, "
+                + "but resolves to org.projectnessie:nessie-quarkus:"
                 + nessieVersionForTest
-                + ", "
-                + "org.projectnessie:nessie-model:"
-                + nessieVersionForTest);
+                + ", org.projectnessie:nessie-model:"
+                + nessieVersionForTest
+                + " (hint: do not enable transitive on the dependency)");
   }
 
   /**
@@ -349,7 +348,7 @@ class TestNessieRunnerPlugin {
     return GradleRunner.create()
         .withPluginClasspath()
         .withProjectDir(testProjectDir.toFile())
-        .withArguments("--build-cache", "--info", "--stacktrace", task)
+        .withArguments("--configuration-cache", "--build-cache", "--info", "--stacktrace", task)
         .withDebug(true)
         .forwardOutput();
   }

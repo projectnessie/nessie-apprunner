@@ -25,17 +25,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.DependencySet;
-import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.testing.Test;
 import org.gradle.process.JavaForkOptions;
 import org.projectnessie.nessierunner.common.JavaVM;
 import org.projectnessie.nessierunner.common.ProcessHandler;
@@ -52,51 +47,35 @@ public class ProcessState {
   @TaskAction
   public void noop() {}
 
-  void quarkusStart(Task task) {
-    NessieRunnerExtension extension =
-        task.getProject().getExtensions().getByType(NessieRunnerExtension.class);
-
-    Configuration appConfig =
-        task.getProject().getConfigurations().getByName(NessieRunnerPlugin.APP_CONFIG_NAME);
+  void quarkusStart(
+      Task task,
+      NessieRunnerExtension extension,
+      ExtraPropertiesExtension extra,
+      FileCollection appConfigFiles,
+      String dependenciesString) {
 
     RegularFile configuredJar = extension.getExecutableJar().getOrNull();
 
-    DependencySet dependencies = appConfig.getDependencies();
     File execJar;
 
     if (configuredJar == null) {
-      if (dependencies.isEmpty()) {
+      if (appConfigFiles != null && !appConfigFiles.isEmpty()) {
+        Set<File> appConfigFileSet = appConfigFiles.getFiles();
+        if (appConfigFileSet.size() != 1) {
+          throw new GradleException(
+              String.format(
+                  "Expected configuration %s to resolve to exactly one artifact, but resolves to %s (hint: do not enable transitive on the dependency)",
+                  NessieRunnerPlugin.APP_CONFIG_NAME, dependenciesString));
+        }
+        execJar = appConfigFileSet.iterator().next();
+      } else {
         throw new GradleException(
             String.format(
-                "Dependency org.projectnessie:nessie-quarkus:runner missing in configuration %s",
-                NessieRunnerPlugin.APP_CONFIG_NAME));
+                "Neither does the configuration %s contain exactly one dependency (preferably org.projectnessie:nessie-quarkus:runner), nor is the runner jar specified in the %s extension.",
+                NessieRunnerPlugin.APP_CONFIG_NAME, NessieRunnerPlugin.EXTENSION_NAME));
       }
-      if (dependencies.size() != 1) {
-        throw new GradleException(
-            String.format(
-                "Configuration %s must only contain the org.projectnessie:nessie-quarkus:runner dependency, but resolves to these artifacts: %s",
-                NessieRunnerPlugin.APP_CONFIG_NAME,
-                dependencies.stream()
-                    .map(d -> String.format("%s:%s:%s", d.getGroup(), d.getName(), d.getVersion()))
-                    .collect(Collectors.joining(", "))));
-      }
-      Dependency dep = dependencies.iterator().next();
-      if (!(dep instanceof ModuleDependency)) {
-        throw new GradleException(
-            String.format(
-                "Expected dependency %s to be of type ModuleDependency, but is %s",
-                dep, dep.getClass().getSimpleName()));
-      }
-      Set<File> files = appConfig.resolve();
-      if (files.size() != 1) {
-        throw new GradleException(
-            String.format(
-                "Expected configuration %s with dependency %s to resolve to exactly one artifact, but resolves to %s (hint: do not enable transitive on the dependency)",
-                NessieRunnerPlugin.APP_CONFIG_NAME, dep, files));
-      }
-      execJar = files.iterator().next();
     } else {
-      if (!dependencies.isEmpty()) {
+      if (appConfigFiles != null && !appConfigFiles.isEmpty()) {
         throw new GradleException(
             String.format(
                 "Configuration %s contains a dependency and option 'executableJar' are mutually exclusive",
@@ -124,6 +103,9 @@ public class ProcessState {
     command.add(javaVM.getJavaExecutable().toString());
     command.addAll(extension.getJvmArguments().get());
     command.addAll(extension.getJvmArgumentsNonInput().get());
+    command.add("-Dquarkus.http.port=0");
+    command.add("-Dquarkus.log.level=INFO");
+    command.add("-Dquarkus.log.console.level=INFO");
     extension
         .getSystemProperties()
         .get()
@@ -132,7 +114,6 @@ public class ProcessState {
         .getSystemPropertiesNonInput()
         .get()
         .forEach((k, v) -> command.add(String.format("-D%s=%s", k, v)));
-    command.add("-Dquarkus.http.port=0");
     command.add("-jar");
     command.add(execJar.getAbsolutePath());
     command.addAll(extension.getArguments().get());
@@ -148,10 +129,12 @@ public class ProcessState {
         .forEach((k, v) -> processBuilder.environment().put(k, v));
     processBuilder.directory(workDir.toFile());
 
+    Logger logger = task.getLogger();
+
     try {
       processHandler = new ProcessHandler();
-      processHandler.setStdoutTarget(line -> task.getLogger().info("[stdout] {}", line));
-      processHandler.setStderrTarget(line -> task.getLogger().info("[stderr] {}", line));
+      processHandler.setStdoutTarget(line -> logger.info("[stdout] {}", line));
+      processHandler.setStderrTarget(line -> logger.info("[stderr] {}", line));
       processHandler.start(processBuilder);
       if (extension.getTimeToListenUrlMillis().get() > 0L) {
         processHandler.setTimeToListenUrlMillis(extension.getTimeToListenUrlMillis().get());
@@ -181,7 +164,6 @@ public class ProcessState {
     String listenPort = Integer.toString(URI.create(listenUrl).getPort());
 
     // Add the Quarkus properties as "generic properties", so any task can use them.
-    ExtraPropertiesExtension extra = task.getExtensions().getByType(ExtraPropertiesExtension.class);
     extra.set(extension.getHttpListenUrlProperty().get(), listenUrl);
     extra.set(extension.getHttpListenPortProperty().get(), listenPort);
 
@@ -191,7 +173,7 @@ public class ProcessState {
     // CommandLineArgumentProvider.
     // In other words: ensure that the `Test` tasks is cacheable.
     if (task instanceof JavaForkOptions) {
-      Test test = (Test) task;
+      JavaForkOptions test = (JavaForkOptions) task;
       test.getJvmArgumentProviders()
           .add(
               () ->
