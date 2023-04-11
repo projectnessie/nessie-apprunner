@@ -16,10 +16,13 @@
 
 plugins {
   id 'java-gradle-plugin'
-  id 'jacoco'
   id 'maven-publish'
   id 'com.gradle.plugin-publish' version '1.2.0'
   id "com.diffplug.spotless" version "6.18.0"
+}
+
+if (project.hasProperty("code-coverage")) {
+  plugins.apply('jacoco')
 }
 
 def mavenPropertiesFile = file('../target/project.properties')
@@ -84,6 +87,18 @@ test {
           'junit-version': junitVersion,
           'jackson-version': jacksonVersion
   ])
+  jvmArgs("--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+          "--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
+          "--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
+          "--add-exports=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED",
+          "--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
+          "--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED",
+          "--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
+          "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
+          "--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
+          "--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED",
+          "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+          "--add-opens=java.base/java.util=ALL-UNNAMED")
   useJUnitPlatform()
 }
 
@@ -100,8 +115,10 @@ dependencies {
   testImplementation("org.assertj:assertj-core:${assertjVersion}")
 }
 
-jacoco {
-  toolVersion = jacocoVersion
+if (project.hasProperty("code-coverage")) {
+  jacoco {
+    toolVersion = jacocoVersion
+  }
 }
 
 task codeCoverageReport(type:JacocoReport) {

@@ -17,11 +17,16 @@ package org.projectnessie.nessierunner.gradle;
 
 import static org.projectnessie.nessierunner.gradle.NessieRunnerPlugin.APP_CONFIG_NAME;
 
+import java.util.stream.Collectors;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskInputs;
@@ -63,6 +68,18 @@ public class NessieRunnerTaskConfigurer<T extends Task> implements Action<T> {
 
     inputs.files(appConfig);
 
+    DependencySet dependencies = appConfig.getDependencies();
+    // Although we assert that only a single artifact is used (later), collect all dependencies
+    // for a nicer error message.
+    String dependenciesString =
+        dependencies.stream()
+            .map(d -> String.format("%s:%s:%s", d.getGroup(), d.getName(), d.getVersion()))
+            .collect(Collectors.joining(", "));
+    FileCollection files =
+        !dependencies.isEmpty()
+            ? appConfig.fileCollection(dependencies.toArray(new Dependency[0]))
+            : null;
+
     // Start the Nessie-Quarkus-App only when the Test task actually runs
 
     task.usesService(nessieRunnerServiceProvider);
@@ -73,7 +90,12 @@ public class NessieRunnerTaskConfigurer<T extends Task> implements Action<T> {
           public void execute(Task t) {
             ProcessState processState = new ProcessState();
             nessieRunnerServiceProvider.get().register(processState, t);
-            processState.quarkusStart(t);
+
+            ExtraPropertiesExtension extra =
+                task.getExtensions().getByType(ExtraPropertiesExtension.class);
+
+            processState.quarkusStart(t, extension, extra, files, dependenciesString);
+
             if (postStartAction != null) {
               postStartAction.execute((T) t);
             }

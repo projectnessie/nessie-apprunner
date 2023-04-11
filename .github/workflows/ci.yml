@@ -24,18 +24,24 @@ on:
     types: [opened, synchronize, reopened]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.repository != 'projectnessie/nessie-apprunner' }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.head_commit.id }}-${{ github.event.pull_request.head.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   java:
-    name: Java/Maven
+    name: CI Java/Maven
     runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 3
+      matrix:
+        java-version: ['11', '17', '19']
 
     steps:
     - uses: actions/checkout@v3
     - name: Setup Java, Maven, Gradle
       uses: ./.github/actions/dev-tool-java
+      with:
+        java-version: ${{ matrix.java-version }}
 
     - name: Build with Maven
       env:
@@ -44,11 +50,18 @@ jobs:
         ./mvnw --batch-mode --threads 1C install javadoc:javadoc-no-fork -Pcode-coverage -Dtest.log.level=WARN
 
     - name: Build with Gradle
-      run: ./gradlew --rerun-tasks --no-daemon --info build
-      working-directory: ./gradle-plugin
+      uses: gradle/gradle-build-action@v2
+      env:
+        GRADLE_BUILD_ACTION_CACHE_KEY_ENVIRONMENT: java-${{ matrix.java-version }}
+      with:
+        build-root-directory: ./gradle-plugin
+        # -Pcode-coverage would enable Jacoco, but Gradle's testkit doesn't like Java agents,
+        # see https://docs.gradle.org/8.0.2/userguide/configuration_cache.html#config_cache:not_yet_implemented:testkit_build_with_java_agent
+        arguments: build --scan
 
     - name: Capture test results
       uses: actions/upload-artifact@v3
+      if: failure()
       with:
         name: test-results
         path: |
@@ -56,8 +69,22 @@ jobs:
           **/target/failsafe-reports/*
           **/build/reports/*
           **/build/test-results/*
+
     - uses: codecov/codecov-action@v3
+      if: matrix.java-version == '11'
       with:
         fail_ci_if_error: false
         flags: java
         files: code-coverage/target/site/jacoco-aggregate-all/jacoco.xml,gradle-plugin/build/reports/jacoco/codeCoverageReport/codeCoverageReport.xml
+
+  finish:
+    # 'Ci Success' is the (only) required check for PRs, so we can change the jobs above without
+    # having to update the GH configuration every time.
+    name: CI Success
+    runs-on: ubuntu-22.04
+    needs:
+      - java
+    steps:
+      # Intentionally empty job (for all GH WF) events so that the "required checks" setting
+      # only needs to contain this job as the only required check for PRs.
+      - run: echo "Success"
