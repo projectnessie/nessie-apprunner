@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskInputs;
@@ -91,10 +90,7 @@ public class NessieRunnerTaskConfigurer<T extends Task> implements Action<T> {
             ProcessState processState = new ProcessState();
             nessieRunnerServiceProvider.get().register(processState, t);
 
-            ExtraPropertiesExtension extra =
-                task.getExtensions().getByType(ExtraPropertiesExtension.class);
-
-            processState.quarkusStart(t, extension, extra, files, dependenciesString);
+            processState.quarkusStart(t, extension, files, dependenciesString);
 
             if (postStartAction != null) {
               postStartAction.execute((T) t);

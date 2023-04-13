@@ -29,7 +29,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.process.JavaForkOptions;
 import org.projectnessie.nessierunner.common.JavaVM;
@@ -50,7 +49,6 @@ public class ProcessState {
   void quarkusStart(
       Task task,
       NessieRunnerExtension extension,
-      ExtraPropertiesExtension extra,
       FileCollection appConfigFiles,
       String dependenciesString) {
 
@@ -162,10 +160,6 @@ public class ProcessState {
       throw new RuntimeException(e);
     }
     String listenPort = Integer.toString(URI.create(listenUrl).getPort());
-
-    // Add the Quarkus properties as "generic properties", so any task can use them.
-    extra.set(extension.getHttpListenUrlProperty().get(), listenUrl);
-    extra.set(extension.getHttpListenPortProperty().get(), listenPort);
 
     // Do not put the "dynamic" properties (quarkus.http.test-port) to the `Test` task's
     // system-properties, because those are subject to the test-task's inputs, which is used
