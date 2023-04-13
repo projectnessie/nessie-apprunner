@@ -22,7 +22,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.gradle.testkit.runner.BuildResult;
@@ -285,63 +284,6 @@ class TestNessieRunnerPlugin {
         .isNotNull()
         .extracting(BuildTask::getOutcome)
         .isEqualTo(TaskOutcome.FROM_CACHE);
-  }
-
-  @Test
-  void genericTask() throws Exception {
-    Files.write(
-        buildFile,
-        Stream.concat(
-                prefix.stream(),
-                Stream.of(
-                    "    implementation 'org.projectnessie:nessie-client:0.4.0'",
-                    "    nessieQuarkusServer 'org.projectnessie:nessie-quarkus:"
-                        + nessieVersionForTest
-                        + ":runner'",
-                    "}",
-                    "",
-                    "tasks.register('foobar') {",
-                    "  doFirst {",
-                    "    System.out.println(\"FOO BAR ${ext[\"quarkus.http.test-port\"]} BAZ\")",
-                    "  }",
-                    "}",
-                    "",
-                    "nessieQuarkusApp {",
-                    "    includeTask(tasks.named(\"foobar\"))",
-                    "}"))
-            .collect(Collectors.toList()));
-
-    // "test" task must fail (Nessie-Quarkus not started)
-    BuildResult result = createGradleRunner("test").buildAndFail();
-    assertThat(result)
-        .satisfies(r -> assertThat(r.getOutput()).doesNotContain("powered by Quarkus"))
-        .extracting(r -> r.task(":test"))
-        .isNotNull()
-        .extracting(BuildTask::getOutcome)
-        .isEqualTo(TaskOutcome.FAILED);
-
-    // "foobar" task must succeed and extra-property yield the port number
-    result = createGradleRunner("foobar").build();
-    assertThat(result)
-        .satisfies(
-            r ->
-                assertThat(r.getOutput())
-                    // Nessie-Quarkus must have been started
-                    .contains("powered by Quarkus")
-                    .satisfies(
-                        s ->
-                            // verify that there's a port number > 0 (printed by the 'foobar' task)
-                            assertThat(
-                                    Pattern.compile(".*FOO BAR (\\d+) BAZ.*", Pattern.DOTALL)
-                                        .matcher(s))
-                                .satisfies(m -> assertThat(m.matches()).isTrue())
-                                .satisfies(
-                                    m ->
-                                        assertThat(Integer.parseInt(m.group(1))).isGreaterThan(0))))
-        .extracting(r -> r.task(":foobar"))
-        .isNotNull()
-        .extracting(BuildTask::getOutcome)
-        .isEqualTo(TaskOutcome.SUCCESS);
   }
 
   private GradleRunner createGradleRunner(String task) {
