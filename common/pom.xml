@@ -22,7 +22,7 @@
   <parent>
     <groupId>org.projectnessie.nessie-runner</groupId>
     <artifactId>nessie-runner-parent</artifactId>
-    <version>0.30.1</version>
+    <version>0.30.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>nessie-runner-common</artifactId>
