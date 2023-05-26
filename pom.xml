@@ -21,7 +21,7 @@
 
   <groupId>org.projectnessie.nessie-runner</groupId>
   <artifactId>nessie-runner-parent</artifactId>
-  <version>0.30.6</version>
+  <version>0.30.7-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Nessie Apprunner</name>
