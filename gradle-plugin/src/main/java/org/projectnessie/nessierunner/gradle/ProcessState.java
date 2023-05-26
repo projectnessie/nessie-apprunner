@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
+import java.util.function.BiConsumer;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
@@ -50,7 +51,8 @@ public class ProcessState {
       Task task,
       NessieRunnerExtension extension,
       FileCollection appConfigFiles,
-      String dependenciesString) {
+      String dependenciesString,
+      BiConsumer<String, String> urlAndPortConsumer) {
 
     RegularFile configuredJar = extension.getExecutableJar().getOrNull();
 
@@ -160,6 +162,9 @@ public class ProcessState {
       throw new RuntimeException(e);
     }
     String listenPort = Integer.toString(URI.create(listenUrl).getPort());
+
+    // Add the Quarkus properties as "generic properties", so any task can use them.
+    urlAndPortConsumer.accept(listenUrl, listenPort);
 
     // Do not put the "dynamic" properties (quarkus.http.test-port) to the `Test` task's
     // system-properties, because those are subject to the test-task's inputs, which is used
