@@ -81,8 +81,6 @@ public class NessieRunnerTaskConfigurer<T extends Task> implements Action<T> {
             ? appConfig.fileCollection(dependencies.toArray(new Dependency[0]))
             : null;
 
-    // Start the Nessie-Quarkus-App only when the Test task actually runs
-
     ExtraPropertiesExtension extra =
         task.getExtensions().findByType(ExtraPropertiesExtension.class);
     BiConsumer<String, String> urlAndPortConsumer =
@@ -97,6 +95,8 @@ public class NessieRunnerTaskConfigurer<T extends Task> implements Action<T> {
       task.notCompatibleWithConfigurationCache(
           "NessieRunner needs Gradle's extra-properties, which is incompatible with the configuration cache");
     }
+
+    // Start the Nessie-Quarkus-App only when the Test task actually runs
 
     task.usesService(nessieRunnerServiceProvider);
     task.doFirst(
