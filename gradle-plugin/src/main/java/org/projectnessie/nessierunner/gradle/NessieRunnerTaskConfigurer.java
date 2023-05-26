@@ -17,6 +17,7 @@ package org.projectnessie.nessierunner.gradle;
 
 import static org.projectnessie.nessierunner.gradle.NessieRunnerPlugin.APP_CONFIG_NAME;
 
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
@@ -26,6 +27,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskInputs;
@@ -81,6 +83,21 @@ public class NessieRunnerTaskConfigurer<T extends Task> implements Action<T> {
 
     // Start the Nessie-Quarkus-App only when the Test task actually runs
 
+    ExtraPropertiesExtension extra =
+        task.getExtensions().findByType(ExtraPropertiesExtension.class);
+    BiConsumer<String, String> urlAndPortConsumer =
+        extra != null
+            ? (listenUrl, listenPort) -> {
+              extra.set(extension.getHttpListenUrlProperty().get(), listenUrl);
+              extra.set(extension.getHttpListenPortProperty().get(), listenPort);
+            }
+            : (listenUrl, listenPort) -> {};
+
+    if (extra != null) {
+      task.notCompatibleWithConfigurationCache(
+          "NessieRunner needs Gradle's extra-properties, which is incompatible with the configuration cache");
+    }
+
     task.usesService(nessieRunnerServiceProvider);
     task.doFirst(
         new Action<Task>() {
@@ -90,7 +107,7 @@ public class NessieRunnerTaskConfigurer<T extends Task> implements Action<T> {
             ProcessState processState = new ProcessState();
             nessieRunnerServiceProvider.get().register(processState, t);
 
-            processState.quarkusStart(t, extension, files, dependenciesString);
+            processState.quarkusStart(t, extension, files, dependenciesString, urlAndPortConsumer);
 
             if (postStartAction != null) {
               postStartAction.execute((T) t);
