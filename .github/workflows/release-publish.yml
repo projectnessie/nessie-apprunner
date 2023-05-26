@@ -84,6 +84,15 @@ jobs:
         gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
     ### END runner setup
 
+    - name: GPG key info
+      run:
+        echo "::group::GPG keys"
+        gpg --list-keys
+        echo "::endgroup::"
+        echo "::group::GPG secret keys"
+        gpg --list-secret-keys
+        echo "::endgroup::"
+
     # Deploys Maven artifacts. Build and test steps were already ran in previous steps.
     # Not running tests, because the environment contains secrets.
     - name: Publish Maven artifacts for release
