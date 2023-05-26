@@ -99,7 +99,7 @@ jobs:
         GOALS="install org.sonatype.plugins:nexus-staging-maven-plugin:1.6.13:deploy"
         BUILD_ARGS="-DskipTests"
 
-        ./mvnw --batch-mode ${GOALS} ${PROFILES} ${NEXUS_ARGS} ${BUILD_ARGS} -X
+        ./mvnw --batch-mode ${GOALS} ${PROFILES} ${NEXUS_ARGS} ${BUILD_ARGS}
 
     # Deploys Gradle plugin. Build and test steps were already ran in previous steps
     - name: Publish Gradle Plugin for release
