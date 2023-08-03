@@ -145,7 +145,7 @@
     <nessierunner.version>${project.version}</nessierunner.version>
     <assertj.version>3.24.2</assertj.version>
     <checkstyle.version>10.12.2</checkstyle.version>
-    <errorprone-slf4j.version>0.1.18</errorprone-slf4j.version>
+    <errorprone-slf4j.version>0.1.19</errorprone-slf4j.version>
     <google-error-prone.version>2.21.0</google-error-prone.version>
     <google-java-format.version>1.17.0</google-java-format.version>
     <!-- Jackson's required by Gradle plugin integration tests -->
