@@ -15,7 +15,6 @@
  */
 package org.projectnessie.nessierunner.gradle;
 
-import java.io.File;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -67,7 +66,7 @@ public class NessieRunnerExtension {
         project
             .getObjects()
             .fileProperty()
-            .convention(() -> new File(project.getBuildDir(), "nessie-quarkus"));
+            .convention(project.getLayout().getBuildDirectory().file("nessie-quarkus"));
     executableJar = project.getObjects().fileProperty();
     timeToListenUrlMillis = project.getObjects().property(Long.class).convention(0L);
     timeToStopMillis = project.getObjects().property(Long.class).convention(0L);
