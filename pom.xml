@@ -144,7 +144,7 @@
     <!-- Version properties -->
     <nessierunner.version>${project.version}</nessierunner.version>
     <assertj.version>3.24.2</assertj.version>
-    <checkstyle.version>10.12.4</checkstyle.version>
+    <checkstyle.version>10.12.5</checkstyle.version>
     <errorprone-slf4j.version>0.1.20</errorprone-slf4j.version>
     <google-error-prone.version>2.23.0</google-error-prone.version>
     <google-java-format.version>1.18.1</google-java-format.version>
