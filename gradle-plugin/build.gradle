@@ -18,7 +18,7 @@ plugins {
   id 'java-gradle-plugin'
   id 'maven-publish'
   id 'com.gradle.plugin-publish' version '1.2.1'
-  id "com.diffplug.spotless" version "6.23.1"
+  id "com.diffplug.spotless" version "6.23.2"
 }
 
 if (project.hasProperty("code-coverage")) {
