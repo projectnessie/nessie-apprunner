@@ -147,7 +147,7 @@
     <checkstyle.version>10.12.6</checkstyle.version>
     <errorprone-slf4j.version>0.1.21</errorprone-slf4j.version>
     <google-error-prone.version>2.23.0</google-error-prone.version>
-    <google-java-format.version>1.18.1</google-java-format.version>
+    <google-java-format.version>1.19.0</google-java-format.version>
     <!-- Jackson's required by Gradle plugin integration tests -->
     <jackson.version>2.13.1</jackson.version>
     <jacoco.version>0.8.11</jacoco.version>
