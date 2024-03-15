@@ -38,6 +38,8 @@ public class NessieRunnerExtension {
   private final Property<Integer> javaVersion;
   private final Property<String> httpListenPortProperty;
   private final Property<String> httpListenUrlProperty;
+  private final Property<String> managementListenPortProperty;
+  private final Property<String> managementListenUrlProperty;
   private final RegularFileProperty executableJar;
   private final RegularFileProperty workingDirectory;
   private final Property<Long> timeToListenUrlMillis;
@@ -62,6 +64,10 @@ public class NessieRunnerExtension {
         project.getObjects().property(String.class).convention("quarkus.http.test-url");
     httpListenPortProperty =
         project.getObjects().property(String.class).convention("quarkus.http.test-port");
+    managementListenUrlProperty =
+        project.getObjects().property(String.class).convention("quarkus.management.test-url");
+    managementListenPortProperty =
+        project.getObjects().property(String.class).convention("quarkus.management.test-port");
     workingDirectory =
         project
             .getObjects()
@@ -114,6 +120,14 @@ public class NessieRunnerExtension {
 
   public Property<String> getHttpListenUrlProperty() {
     return httpListenUrlProperty;
+  }
+
+  public Property<String> getManagementListenPortProperty() {
+    return managementListenPortProperty;
+  }
+
+  public Property<String> getManagementListenUrlProperty() {
+    return managementListenUrlProperty;
   }
 
   public RegularFileProperty getExecutableJar() {
