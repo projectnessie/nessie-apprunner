@@ -55,37 +55,41 @@ class TestListenUrlWaiter {
 
     waiter.accept("Hello World");
     assertThat(line.getAndSet(null)).isEqualTo("Hello World");
-    assertThat(waiter.peekListenUrl()).isNull();
+    assertThat(waiter.peekListenUrls()).isNull();
 
     waiter.accept("");
     assertThat(line.getAndSet(null)).isEqualTo("");
-    assertThat(waiter.peekListenUrl()).isNull();
+    assertThat(waiter.peekListenUrls()).isNull();
 
     String listenLine =
-        "2021-05-28 12:12:25,753 INFO  [io.quarkus] (main) nessie-quarkus 0.6.2-SNAPSHOT on JVM (powered by Quarkus 1.13.4.Final) started in 1.444s. Listening on: http://0.0.0.0:39423";
+        "2021-05-28 12:12:25,753 INFO  [io.quarkus] (main) nessie-quarkus 0.6.2-SNAPSHOT on JVM (powered by Quarkus 1.13.4.Final) started in 1.444s. Listening on: http://0.0.0.0:39423. Management interface listening on http://0.0.0.0:9000.";
     waiter.accept(listenLine);
     assertThat(line.getAndSet(null)).isEqualTo(listenLine);
-    assertThat(waiter.peekListenUrl()).isEqualTo("http://0.0.0.0:39423");
+    assertThat(waiter.peekListenUrls())
+        .containsExactly("http://0.0.0.0:39423", "http://0.0.0.0:9000");
 
     // Must *not* change the already extracted listen-url
     listenLine =
         "2021-05-28 12:12:25,753 INFO  [io.quarkus] (main) nessie-quarkus 0.6.2-SNAPSHOT on JVM (powered by Quarkus 1.13.4.Final) started in 1.444s. Listening on: http://4.2.4.2:4242";
     waiter.accept(listenLine);
     assertThat(line.getAndSet(null)).isEqualTo(listenLine);
-    assertThat(waiter.peekListenUrl()).isEqualTo("http://0.0.0.0:39423");
+    assertThat(waiter.peekListenUrls())
+        .containsExactly("http://0.0.0.0:39423", "http://0.0.0.0:9000");
 
     waiter = new ListenUrlWaiter(clock::get, timeout, line::set);
     listenLine =
         "2021-05-28 12:12:25,753 INFO  [io.quarkus] (main) nessie-quarkus 0.6.2-SNAPSHOT on JVM (powered by Quarkus 1.13.4.Final) started in 1.444s. Listening on: https://localhost.in.some.space:12345";
     waiter.accept(listenLine);
     assertThat(line.getAndSet(null)).isEqualTo(listenLine);
-    assertThat(waiter.peekListenUrl()).isEqualTo("https://localhost.in.some.space:12345");
+    assertThat(waiter.peekListenUrls())
+        .containsExactly("https://localhost.in.some.space:12345", null);
 
     waiter = new ListenUrlWaiter(clock::get, timeout, line::set);
     listenLine = "Listening on: https://localhost.in.some.space:4242";
     waiter.accept(listenLine);
     assertThat(line.getAndSet(null)).isEqualTo(listenLine);
-    assertThat(waiter.peekListenUrl()).isEqualTo("https://localhost.in.some.space:4242");
+    assertThat(waiter.peekListenUrls())
+        .containsExactly("https://localhost.in.some.space:4242", null);
   }
 
   @RepeatedTest(20) // repeat, risk of flakiness
@@ -102,7 +106,7 @@ class TestListenUrlWaiter {
 
     assertThat(waiter.isTimeout()).isTrue();
 
-    assertThat(executor.submit(waiter::getListenUrl))
+    assertThat(executor.submit(waiter::getListenUrls))
         .failsWithin(5, TimeUnit.SECONDS)
         .withThrowableOfType(ExecutionException.class)
         .withRootCauseExactlyInstanceOf(TimeoutException.class)
@@ -124,15 +128,17 @@ class TestListenUrlWaiter {
     clock.set(TimeUnit.MILLISECONDS.toNanos(timeout));
 
     String listenLine =
-        "2021-05-28 12:12:25,753 INFO  [io.quarkus] (main) nessie-quarkus 0.6.2-SNAPSHOT on JVM (powered by Quarkus 1.13.4.Final) started in 1.444s. Listening on: http://4.2.4.2:4242";
+        "2021-05-28 12:12:25,753 INFO  [io.quarkus] (main) nessie-quarkus 0.6.2-SNAPSHOT on JVM (powered by Quarkus 1.13.4.Final) started in 1.444s. Listening on: http://4.2.4.2:4242. Management interface listening on http://4.2.4.2:2424.";
     waiter.accept(listenLine);
     assertThat(line.getAndSet(null)).isEqualTo(listenLine);
-    assertThat(waiter.getListenUrl()).isEqualTo("http://4.2.4.2:4242");
+    assertThat(waiter.getListenUrls())
+        .containsExactly("http://4.2.4.2:4242", "http://4.2.4.2:2424");
     assertThat(waiter.isTimeout()).isFalse();
 
     // Clock post the timeout-boundary (so a timeout-check would trigger)
     clock.set(TimeUnit.MILLISECONDS.toNanos(timeout + 1));
-    assertThat(waiter.getListenUrl()).isEqualTo("http://4.2.4.2:4242");
+    assertThat(waiter.getListenUrls())
+        .containsExactly("http://4.2.4.2:4242", "http://4.2.4.2:2424");
     assertThat(waiter.isTimeout()).isFalse();
   }
 }

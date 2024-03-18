@@ -15,6 +15,8 @@
  */
 package org.projectnessie.nessierunner.common;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -32,7 +34,8 @@ import java.util.regex.Pattern;
 final class ListenUrlWaiter implements Consumer<String> {
 
   private static final Pattern HTTP_PORT_LOG_PATTERN =
-      Pattern.compile("^.*Listening on: (http[s]?://[^ ]*)$");
+      Pattern.compile(
+          "^.*Listening on: (http[s]?://[^ ]*)([.] Management interface listening on (http[s]?://[^ ]*)[.])?$");
   static final String TIMEOUT_MESSAGE =
       "Did not get the http(s) listen URL from the console output.";
   private static final long MAX_ITER_WAIT_NANOS = TimeUnit.MILLISECONDS.toNanos(50);
@@ -41,7 +44,7 @@ final class ListenUrlWaiter implements Consumer<String> {
   private final Consumer<String> stdoutTarget;
   private final long deadlineListenUrl;
 
-  private final CompletableFuture<String> listenUrl = new CompletableFuture<>();
+  private final CompletableFuture<List<String>> listenUrl = new CompletableFuture<>();
 
   /**
    * Construct a new instance to wait for Quarkus' {@code Listening on: ...} message.
@@ -63,13 +66,13 @@ final class ListenUrlWaiter implements Consumer<String> {
     if (!listenUrl.isDone()) {
       Matcher m = HTTP_PORT_LOG_PATTERN.matcher(line);
       if (m.matches()) {
-        listenUrl.complete(m.group(1));
+        listenUrl.complete(Arrays.asList(m.group(1), m.group(3)));
       }
     }
     stdoutTarget.accept(line);
   }
 
-  String peekListenUrl() {
+  List<String> peekListenUrls() {
     try {
       return listenUrl.isDone() ? listenUrl.get() : null;
     } catch (Exception e) {
@@ -82,7 +85,7 @@ final class ListenUrlWaiter implements Consumer<String> {
    *
    * @return the captured listen URL or {@code null} if none has been found (so far).
    */
-  String getListenUrl() throws InterruptedException, TimeoutException {
+  List<String> getListenUrls() throws InterruptedException, TimeoutException {
     while (true) {
       long remainingNanos = remainingNanos();
       // must succeed if the listen-url has been captured, even if it's called after the timeout has

@@ -17,6 +17,7 @@ package org.projectnessie.nessierunner.common;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -32,7 +33,7 @@ import java.util.function.LongSupplier;
  * Handles the execution of an external process, focused on running a Quarkus application jar.
  *
  * <p>Starts the process configured in a {@link ProcessBuilder}, provides a method to get the {@link
- * #getListenUrl() Quarkus HTTP listen URL} as Quarkus prints to stdout, and manages process
+ * #getListenUrls() Quarkus HTTP listen URL} as Quarkus prints to stdout, and manages process
  * lifetime and line-by-line I/O pass-through for stdout + stderr.
  *
  * <p>Any instance of this class can only be used to start (and stop) one process and cannot be
@@ -149,8 +150,8 @@ public class ProcessHandler {
    *     URL.
    * @throws TimeoutException if the Quarkus process did not write the listen URL to stdout.
    */
-  public String getListenUrl() throws InterruptedException, TimeoutException {
-    return listenUrlWaiter.getListenUrl();
+  public List<String> getListenUrls() throws InterruptedException, TimeoutException {
+    return listenUrlWaiter.getListenUrls();
   }
 
   /**

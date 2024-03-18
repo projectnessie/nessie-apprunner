@@ -52,7 +52,8 @@ public class ProcessState {
       NessieRunnerExtension extension,
       FileCollection appConfigFiles,
       String dependenciesString,
-      BiConsumer<String, String> urlAndPortConsumer) {
+      BiConsumer<String, String> httpUrlAndPortConsumer,
+      BiConsumer<String, String> managementUrlAndPortConsumer) {
 
     RegularFile configuredJar = extension.getExecutableJar().getOrNull();
 
@@ -104,6 +105,7 @@ public class ProcessState {
     command.addAll(extension.getJvmArguments().get());
     command.addAll(extension.getJvmArgumentsNonInput().get());
     command.add("-Dquarkus.http.port=0");
+    command.add("-Dquarkus.management.port=0");
     command.add("-Dquarkus.log.level=INFO");
     command.add("-Dquarkus.log.console.level=INFO");
     extension
@@ -142,7 +144,7 @@ public class ProcessState {
       if (extension.getTimeToStopMillis().get() > 0L) {
         processHandler.setTimeStopMillis(extension.getTimeToStopMillis().get());
       }
-      processHandler.getListenUrl();
+      processHandler.getListenUrls();
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new GradleException(String.format("Process-start interrupted: %s", command), e);
@@ -153,18 +155,43 @@ public class ProcessState {
       throw new GradleException(String.format("Failed to start the process %s", command), e);
     }
 
-    String listenUrl;
+    List<String> listenUrls;
     try {
-      listenUrl = processHandler.getListenUrl();
+      listenUrls = processHandler.getListenUrls();
     } catch (Exception e) {
       // Can safely ignore it (it invocation does not block and therefore not throw an exception).
       // But make the IDE happy with this throw.
       throw new RuntimeException(e);
     }
-    String listenPort = Integer.toString(URI.create(listenUrl).getPort());
 
+    String httpListenUrl = listenUrls.get(0);
+    String httpListenPort = Integer.toString(URI.create(httpListenUrl).getPort());
     // Add the Quarkus properties as "generic properties", so any task can use them.
-    urlAndPortConsumer.accept(listenUrl, listenPort);
+    httpUrlAndPortConsumer.accept(httpListenUrl, httpListenPort);
+
+    List<String> jvmOpts;
+
+    String managementListenUrl = listenUrls.get(1);
+    if (managementListenUrl != null) {
+      String managementListenPort = Integer.toString(URI.create(managementListenUrl).getPort());
+      managementUrlAndPortConsumer.accept(managementListenUrl, managementListenPort);
+
+      jvmOpts =
+          Arrays.asList(
+              String.format("-D%s=%s", extension.getHttpListenUrlProperty().get(), httpListenUrl),
+              String.format("-D%s=%s", extension.getHttpListenPortProperty().get(), httpListenPort),
+              String.format(
+                  "-D%s=%s", extension.getManagementListenUrlProperty().get(), managementListenUrl),
+              String.format(
+                  "-D%s=%s",
+                  extension.getManagementListenPortProperty().get(), managementListenPort));
+    } else {
+      jvmOpts =
+          Arrays.asList(
+              String.format("-D%s=%s", extension.getHttpListenUrlProperty().get(), httpListenUrl),
+              String.format(
+                  "-D%s=%s", extension.getHttpListenPortProperty().get(), httpListenPort));
+    }
 
     // Do not put the "dynamic" properties (quarkus.http.test-port) to the `Test` task's
     // system-properties, because those are subject to the test-task's inputs, which is used
@@ -173,14 +200,7 @@ public class ProcessState {
     // In other words: ensure that the `Test` tasks is cacheable.
     if (task instanceof JavaForkOptions) {
       JavaForkOptions test = (JavaForkOptions) task;
-      test.getJvmArgumentProviders()
-          .add(
-              () ->
-                  Arrays.asList(
-                      String.format(
-                          "-D%s=%s", extension.getHttpListenUrlProperty().get(), listenUrl),
-                      String.format(
-                          "-D%s=%s", extension.getHttpListenPortProperty().get(), listenPort)));
+      test.getJvmArgumentProviders().add(() -> jvmOpts);
     }
   }
 

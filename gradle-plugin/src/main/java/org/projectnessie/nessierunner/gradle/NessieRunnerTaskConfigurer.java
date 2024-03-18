@@ -83,11 +83,18 @@ public class NessieRunnerTaskConfigurer<T extends Task> implements Action<T> {
 
     ExtraPropertiesExtension extra =
         task.getExtensions().findByType(ExtraPropertiesExtension.class);
-    BiConsumer<String, String> urlAndPortConsumer =
+    BiConsumer<String, String> httpUrlAndPortConsumer =
         extra != null
             ? (listenUrl, listenPort) -> {
               extra.set(extension.getHttpListenUrlProperty().get(), listenUrl);
               extra.set(extension.getHttpListenPortProperty().get(), listenPort);
+            }
+            : (listenUrl, listenPort) -> {};
+    BiConsumer<String, String> managementUrlAndPortConsumer =
+        extra != null
+            ? (listenUrl, listenPort) -> {
+              extra.set(extension.getManagementListenUrlProperty().get(), listenUrl);
+              extra.set(extension.getManagementListenPortProperty().get(), listenPort);
             }
             : (listenUrl, listenPort) -> {};
 
@@ -107,8 +114,13 @@ public class NessieRunnerTaskConfigurer<T extends Task> implements Action<T> {
             ProcessState processState = new ProcessState();
             nessieRunnerServiceProvider.get().register(processState, t);
 
-            processState.quarkusStart(t, extension, files, dependenciesString, urlAndPortConsumer);
-
+            processState.quarkusStart(
+                t,
+                extension,
+                files,
+                dependenciesString,
+                httpUrlAndPortConsumer,
+                managementUrlAndPortConsumer);
             if (postStartAction != null) {
               postStartAction.execute((T) t);
             }

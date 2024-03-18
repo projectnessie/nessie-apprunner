@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -79,7 +80,7 @@ class TestProcessHandler {
 
     phMock.ph.started(phMock.proc);
 
-    Future<String> futureListenUrl = executor.submit(phMock.ph::getListenUrl);
+    Future<List<String>> futureListenUrl = executor.submit(phMock.ph::getListenUrls);
 
     while (phMock.clock.get() < TimeUnit.MILLISECONDS.toNanos(phMock.timeToUrl)) {
       assertThat(futureListenUrl).isNotDone();
@@ -109,7 +110,7 @@ class TestProcessHandler {
 
     phMock.ph.started(phMock.proc);
 
-    Future<String> futureListenUrl = executor.submit(phMock.ph::getListenUrl);
+    Future<List<String>> futureListenUrl = executor.submit(phMock.ph::getListenUrls);
 
     assertThat(phMock.ph.isAlive()).isTrue();
     assertThatThrownBy(() -> phMock.ph.getExitCode())
@@ -139,7 +140,7 @@ class TestProcessHandler {
 
     phMock.ph.started(phMock.proc);
 
-    Future<String> futureListenUrl = executor.submit(phMock.ph::getListenUrl);
+    Future<List<String>> futureListenUrl = executor.submit(phMock.ph::getListenUrls);
 
     while (phMock.clock.get() < TimeUnit.MILLISECONDS.toNanos(phMock.timeToUrl)) {
       for (char c : "Hello world\n".toCharArray()) {
@@ -179,7 +180,7 @@ class TestProcessHandler {
 
     phMock.ph.started(phMock.proc);
 
-    Future<String> futureListenUrl = executor.submit(phMock.ph::getListenUrl);
+    Future<List<String>> futureListenUrl = executor.submit(phMock.ph::getListenUrls);
 
     while (phMock.clock.get() < TimeUnit.MILLISECONDS.toNanos(phMock.timeToUrl / 2)) {
       for (char c : "Hello world\n".toCharArray()) {
@@ -202,7 +203,7 @@ class TestProcessHandler {
 
     assertThat(futureListenUrl)
         .succeedsWithin(5, TimeUnit.SECONDS)
-        .isEqualTo("http://0.0.0.0:4242");
+        .isEqualTo(Arrays.asList("http://0.0.0.0:4242", null));
 
     assertThat(phMock.ph.isAlive()).isTrue();
     assertThatThrownBy(() -> phMock.ph.getExitCode())

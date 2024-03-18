@@ -119,6 +119,12 @@ public class NessieRunnerStartMojo extends AbstractNessieRunnerMojo {
   @Parameter(defaultValue = "quarkus.http.test-url")
   private String httpListenUrlProperty;
 
+  @Parameter(defaultValue = "quarkus.management.test-port")
+  private String managementListenPortProperty;
+
+  @Parameter(defaultValue = "quarkus.management.test-url")
+  private String managementListenUrlProperty;
+
   @Parameter(defaultValue = "${build.directory}/nessie-quarkus")
   private String workingDirectory;
 
@@ -244,6 +250,7 @@ public class NessieRunnerStartMojo extends AbstractNessieRunnerMojo {
           (k, v) -> command.add(String.format("-D%s=%s", k.toString(), v.toString())));
     }
     command.add("-Dquarkus.http.port=0");
+    command.add("-Dquarkus.management.port=0");
     command.add("-jar");
     command.add(execJar);
     if (arguments != null) {
@@ -281,12 +288,18 @@ public class NessieRunnerStartMojo extends AbstractNessieRunnerMojo {
 
       setApplicationHandle(processHandler);
 
-      String listenUrl = processHandler.getListenUrl();
+      List<String> listenUrls = processHandler.getListenUrls();
 
       Properties projectProperties = getProject().getProperties();
-      projectProperties.setProperty(httpListenUrlProperty, listenUrl);
+      projectProperties.setProperty(httpListenUrlProperty, listenUrls.get(0));
       projectProperties.setProperty(
-          httpListenPortProperty, Integer.toString(URI.create(listenUrl).getPort()));
+          httpListenPortProperty, Integer.toString(URI.create(listenUrls.get(0)).getPort()));
+      if (listenUrls.get(1) != null) {
+        projectProperties.setProperty(managementListenUrlProperty, listenUrls.get(1));
+        projectProperties.setProperty(
+            managementListenPortProperty,
+            Integer.toString(URI.create(listenUrls.get(1)).getPort()));
+      }
 
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
