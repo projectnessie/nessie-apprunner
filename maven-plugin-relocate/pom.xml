@@ -22,12 +22,12 @@
   <parent>
     <groupId>org.projectnessie.nessie-runner</groupId>
     <artifactId>nessie-runner-parent</artifactId>
-    <version>0.30.8-SNAPSHOT</version>
+    <version>0.31.0</version>
   </parent>
 
   <groupId>org.projectnessie</groupId>
   <artifactId>nessie-apprunner-maven-plugin</artifactId>
-  <version>0.30.8-SNAPSHOT</version>
+  <version>0.31.0</version>
 
   <distributionManagement>
     <relocation>
