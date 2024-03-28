@@ -110,7 +110,7 @@ class TestListenUrlWaiter {
         .failsWithin(5, TimeUnit.SECONDS)
         .withThrowableOfType(ExecutionException.class)
         .withRootCauseExactlyInstanceOf(TimeoutException.class)
-        .withMessageEndingWith(ListenUrlWaiter.TIMEOUT_MESSAGE);
+        .withMessageEndingWith(ListenUrlWaiter.TIMEOUT_MESSAGE + ListenUrlWaiter.NOTHING_RECEIVED);
   }
 
   @RepeatedTest(20) // repeat, risk of flakiness

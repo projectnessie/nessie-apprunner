@@ -49,11 +49,7 @@ import org.projectnessie.nessierunner.common.ProcessHandler;
 @SuppressWarnings("InvalidBlockTag")
 public class NessieRunnerStartMojo extends AbstractNessieRunnerMojo {
 
-  /**
-   * The entry point to Aether, i.e. the component doing all the work.
-   *
-   * @component
-   */
+  /** The entry point to Aether, i.e. the component doing all the work. */
   @Component private RepositorySystem repoSystem;
 
   @Component private ToolchainManager toolchainManager;
@@ -282,8 +278,7 @@ public class NessieRunnerStartMojo extends AbstractNessieRunnerMojo {
       if (timeToStopMillis > 0L) {
         processHandler.setTimeStopMillis(timeToStopMillis);
       }
-      processHandler.setStdoutTarget(line -> getLog().info(String.format("[stdout] %s", line)));
-      processHandler.setStdoutTarget(line -> getLog().info(String.format("[stderr] %s", line)));
+      processHandler.setStdoutTarget(line -> getLog().info(String.format("[output] %s", line)));
       processHandler.start(processBuilder);
 
       setApplicationHandle(processHandler);

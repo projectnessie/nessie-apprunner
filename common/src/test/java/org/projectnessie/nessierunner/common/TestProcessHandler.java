@@ -15,8 +15,7 @@
  */
 package org.projectnessie.nessierunner.common;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -33,12 +32,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import org.assertj.core.api.SoftAssertions;
+import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
+import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+@ExtendWith(SoftAssertionsExtension.class)
 class TestProcessHandler {
+  @InjectSoftAssertions protected SoftAssertions soft;
 
   private static ExecutorService executor;
 
@@ -51,14 +56,14 @@ class TestProcessHandler {
   @AfterAll
   static void stopExecutor() throws Exception {
     executor.shutdown();
-    executor.awaitTermination(10, TimeUnit.SECONDS);
+    executor.awaitTermination(10, SECONDS);
   }
 
   @Test
   void notStarted() {
     ProcessHandlerMock phMock = new ProcessHandlerMock();
 
-    assertThatThrownBy(phMock.ph::stop)
+    soft.assertThatThrownBy(phMock.ph::stop)
         .isInstanceOf(IllegalStateException.class)
         .hasMessage("No process started");
   }
@@ -69,7 +74,7 @@ class TestProcessHandler {
 
     phMock.ph.started(phMock.proc);
 
-    assertThatThrownBy(() -> phMock.ph.started(phMock.proc))
+    soft.assertThatThrownBy(() -> phMock.ph.started(phMock.proc))
         .isInstanceOf(IllegalStateException.class)
         .hasMessage("Process already started");
   }
@@ -83,7 +88,8 @@ class TestProcessHandler {
     Future<List<String>> futureListenUrl = executor.submit(phMock.ph::getListenUrls);
 
     while (phMock.clock.get() < TimeUnit.MILLISECONDS.toNanos(phMock.timeToUrl)) {
-      assertThat(futureListenUrl).isNotDone();
+      soft.assertThat(futureListenUrl).isNotDone();
+      soft.assertAll();
       phMock.clock.addAndGet(TimeUnit.MILLISECONDS.toNanos(10));
     }
     // should be exactly at (but not "past") the time to wait for the listen-url now
@@ -91,17 +97,17 @@ class TestProcessHandler {
     // bump the clock "past" the listen-url-timeout
     phMock.clock.addAndGet(TimeUnit.MILLISECONDS.toNanos(10));
 
-    assertThat(futureListenUrl)
-        .failsWithin(5, TimeUnit.SECONDS)
+    soft.assertThat(futureListenUrl)
+        .failsWithin(5, SECONDS)
         .withThrowableOfType(ExecutionException.class) // EE from ForkJoinPool/executor (test code)
         .withRootCauseInstanceOf(
             TimeoutException.class) // TE from ProcessHandler/ListenUrlWaiter.getListenUrl
-        .withMessageEndingWith(ListenUrlWaiter.TIMEOUT_MESSAGE);
+        .withMessageEndingWith(ListenUrlWaiter.TIMEOUT_MESSAGE + ListenUrlWaiter.NOTHING_RECEIVED);
 
     // Need to wait for the watchdog to finish, before we can do any further assertion
     phMock.ph.watchdogExitGrace();
 
-    assertThat(phMock.ph.isAlive()).isFalse();
+    soft.assertThat(phMock.ph.isAlive()).isFalse();
   }
 
   @RepeatedTest(20) // repeat, risk of flakiness
@@ -112,66 +118,74 @@ class TestProcessHandler {
 
     Future<List<String>> futureListenUrl = executor.submit(phMock.ph::getListenUrls);
 
-    assertThat(phMock.ph.isAlive()).isTrue();
-    assertThatThrownBy(() -> phMock.ph.getExitCode())
+    soft.assertThat(phMock.ph.isAlive()).isTrue();
+    soft.assertThatThrownBy(() -> phMock.ph.getExitCode())
         .isInstanceOf(IllegalThreadStateException.class);
 
     phMock.exitCode.set(88);
 
-    assertThat(futureListenUrl)
-        .failsWithin(5, TimeUnit.SECONDS)
+    soft.assertThat(futureListenUrl)
+        .failsWithin(5, SECONDS)
         .withThrowableOfType(ExecutionException.class) // EE from ForkJoinPool/executor (test code)
-        .withRootCauseInstanceOf(
-            TimeoutException.class) // TE from ProcessHandler/ListenUrlWaiter.getListenUrl
-        .withMessageEndingWith(ListenUrlWaiter.TIMEOUT_MESSAGE);
+        .withMessageEndingWith(
+            ListenUrlWaiter.TIMEOUT_MESSAGE + " Process exited early, exit code is 88.");
 
     // Need to wait for the watchdog to finish, before we can do any further assertion
     phMock.ph.watchdogExitGrace();
 
-    assertThat(phMock.stderrLines).containsExactly("Watched process exited with exit-code 88");
-
-    assertThat(phMock.ph.isAlive()).isFalse();
-    assertThat(phMock.ph.getExitCode()).isEqualTo(88);
+    soft.assertThat(phMock.ph.isAlive()).isFalse();
+    soft.assertThat(phMock.ph.getExitCode()).isEqualTo(88);
   }
 
   @RepeatedTest(20) // repeat, risk of flakiness
-  void processLotsOfIoNoListen() {
+  void processLotsOfIoNoListen() throws Exception {
     ProcessHandlerMock phMock = new ProcessHandlerMock();
 
     phMock.ph.started(phMock.proc);
 
     Future<List<String>> futureListenUrl = executor.submit(phMock.ph::getListenUrls);
 
+    String stdoutMessage = "Hello world\n";
+    char[] message = stdoutMessage.toCharArray();
     while (phMock.clock.get() < TimeUnit.MILLISECONDS.toNanos(phMock.timeToUrl)) {
-      for (char c : "Hello world\n".toCharArray()) {
+      for (char c : message) {
         phMock.stdout.add((byte) c);
       }
-      for (char c : "Errors do not exist\n".toCharArray()) {
-        phMock.stderr.add((byte) c);
-      }
-      assertThat(futureListenUrl).isNotDone();
+      soft.assertThat(futureListenUrl).isNotDone();
+      soft.assertAll();
       phMock.clock.addAndGet(TimeUnit.MILLISECONDS.toNanos(10));
     }
     // should be exactly at (but not "past") the time to wait for the listen-url now
 
+    soft.assertThat(phMock.ph.remainingWaitTimeNanos()).isEqualTo(0);
+    soft.assertThat(phMock.ph.isAlive()).isTrue();
+
+    long timeoutFail = System.currentTimeMillis() + SECONDS.toMillis(10);
+    while (!phMock.stdout.isEmpty()) {
+      soft.assertThat(System.currentTimeMillis() < timeoutFail).isTrue();
+      soft.assertAll();
+      Thread.sleep(1L);
+    }
+
     // bump the clock "past" the listen-url-timeout
     phMock.clock.addAndGet(TimeUnit.MILLISECONDS.toNanos(10));
 
-    assertThat(futureListenUrl)
-        .failsWithin(5, TimeUnit.SECONDS)
+    soft.assertThat(futureListenUrl)
+        .failsWithin(5, SECONDS)
         .withThrowableOfType(ExecutionException.class) // EE from ForkJoinPool/executor (test code)
         .withRootCauseInstanceOf(
             TimeoutException.class) // TE from ProcessHandler/ListenUrlWaiter.getListenUrl
-        .withMessageEndingWith(ListenUrlWaiter.TIMEOUT_MESSAGE);
+        .withMessageContaining(
+            ListenUrlWaiter.TIMEOUT_MESSAGE + ListenUrlWaiter.CAPTURED_LOG_FOLLOWS)
+        .withMessageContaining(stdoutMessage);
 
     // Need to wait for the watchdog to finish, before we can do any further assertion
     phMock.ph.watchdogExitGrace();
 
-    assertThat(phMock.ph.isAlive()).isFalse();
-    assertThat(phMock.ph.getExitCode()).isGreaterThanOrEqualTo(0);
+    soft.assertThat(phMock.ph.isAlive()).isFalse();
+    soft.assertThat(phMock.ph.getExitCode()).isGreaterThanOrEqualTo(0);
 
-    assertThat(phMock.stdoutLines).hasSize((int) (phMock.timeToUrl / 10));
-    assertThat(phMock.stderrLines).hasSize((int) (phMock.timeToUrl / 10));
+    soft.assertThat(phMock.stdoutLines).hasSize((int) (phMock.timeToUrl / 10));
   }
 
   @RepeatedTest(20) // repeat, risk of flakiness
@@ -186,10 +200,8 @@ class TestProcessHandler {
       for (char c : "Hello world\n".toCharArray()) {
         phMock.stdout.add((byte) c);
       }
-      for (char c : "Errors do not exist\n".toCharArray()) {
-        phMock.stderr.add((byte) c);
-      }
-      assertThat(futureListenUrl).isNotDone();
+      soft.assertThat(futureListenUrl).isNotDone();
+      soft.assertAll();
       phMock.clock.addAndGet(TimeUnit.MILLISECONDS.toNanos(10));
     }
     // should be exactly at (but not "past") the time to wait for the listen-url now
@@ -201,22 +213,21 @@ class TestProcessHandler {
     // bump the clock "past" the listen-url-timeout
     phMock.clock.addAndGet(TimeUnit.MILLISECONDS.toNanos(10));
 
-    assertThat(futureListenUrl)
-        .succeedsWithin(5, TimeUnit.SECONDS)
+    soft.assertThat(futureListenUrl)
+        .succeedsWithin(5, SECONDS)
         .isEqualTo(Arrays.asList("http://0.0.0.0:4242", null));
 
-    assertThat(phMock.ph.isAlive()).isTrue();
-    assertThatThrownBy(() -> phMock.ph.getExitCode())
+    soft.assertThat(phMock.ph.isAlive()).isTrue();
+    soft.assertThatThrownBy(() -> phMock.ph.getExitCode())
         .isInstanceOf(IllegalThreadStateException.class);
 
     // The .stop() waits until the watchdog has finished its work
     phMock.ph.stop();
 
-    assertThat(phMock.ph.isAlive()).isFalse();
-    assertThat(phMock.ph.getExitCode()).isGreaterThanOrEqualTo(0);
+    soft.assertThat(phMock.ph.isAlive()).isFalse();
+    soft.assertThat(phMock.ph.getExitCode()).isGreaterThanOrEqualTo(0);
 
-    assertThat(phMock.stdoutLines).hasSize((int) (phMock.timeToUrl / 10 / 2) + 1);
-    assertThat(phMock.stderrLines).hasSize((int) (phMock.timeToUrl / 10 / 2));
+    soft.assertThat(phMock.stdoutLines).hasSize((int) (phMock.timeToUrl / 10 / 2) + 1);
   }
 
   static final class ProcessHandlerMock {
@@ -226,12 +237,10 @@ class TestProcessHandler {
     AtomicInteger exitCode = new AtomicInteger(-1);
 
     // Full lines received "form the process" via stdout/stderr is collected in these lists
-    List<String> stderrLines = Collections.synchronizedList(new ArrayList<>());
     List<String> stdoutLines = Collections.synchronizedList(new ArrayList<>());
 
     // Data that's "written by the process" to stdout/stderr is "piped" through these queues
     ArrayBlockingQueue<Byte> stdout = new ArrayBlockingQueue<>(1024);
-    ArrayBlockingQueue<Byte> stderr = new ArrayBlockingQueue<>(1024);
 
     @SuppressWarnings("InputStreamSlowMultibyteRead")
     InputStream stdoutStream =
@@ -244,21 +253,6 @@ class TestProcessHandler {
           @Override
           public int read() {
             Byte b = stdout.poll();
-            return b == null ? -1 : b.intValue();
-          }
-        };
-
-    @SuppressWarnings("InputStreamSlowMultibyteRead")
-    InputStream stderrStream =
-        new InputStream() {
-          @Override
-          public int available() {
-            return stderr.size();
-          }
-
-          @Override
-          public int read() {
-            Byte b = stderr.poll();
             return b == null ? -1 : b.intValue();
           }
         };
@@ -277,7 +271,7 @@ class TestProcessHandler {
 
           @Override
           public InputStream getErrorStream() {
-            return stderrStream;
+            return stdoutStream;
           }
 
           @Override
@@ -315,7 +309,6 @@ class TestProcessHandler {
 
     ProcessHandler ph =
         new ProcessHandler()
-            .setStderrTarget(stderrLines::add)
             .setStdoutTarget(stdoutLines::add)
             .setTicker(clock::get)
             .setTimeToListenUrlMillis(timeToUrl)

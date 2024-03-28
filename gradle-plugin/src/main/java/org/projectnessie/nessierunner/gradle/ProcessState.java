@@ -135,8 +135,7 @@ public class ProcessState {
 
     try {
       processHandler = new ProcessHandler();
-      processHandler.setStdoutTarget(line -> logger.info("[stdout] {}", line));
-      processHandler.setStderrTarget(line -> logger.info("[stderr] {}", line));
+      processHandler.setStdoutTarget(line -> logger.info("[output] {}", line));
       processHandler.start(processBuilder);
       if (extension.getTimeToListenUrlMillis().get() > 0L) {
         processHandler.setTimeToListenUrlMillis(extension.getTimeToListenUrlMillis().get());
