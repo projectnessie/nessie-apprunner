@@ -62,7 +62,6 @@ public class ProcessHandler {
   private long timeStopMillis = MILLIS_TO_STOP;
 
   private Consumer<String> stdoutTarget = System.out::println;
-  private Consumer<String> stderrTarget = System.err::println;
   private ListenUrlWaiter listenUrlWaiter;
 
   private volatile ExecutorService watchdogExecutor;
@@ -88,11 +87,6 @@ public class ProcessHandler {
     return this;
   }
 
-  public ProcessHandler setStderrTarget(Consumer<String> stderrTarget) {
-    this.stderrTarget = stderrTarget;
-    return this;
-  }
-
   public ProcessHandler setTicker(LongSupplier ticker) {
     this.ticker = ticker;
     return this;
@@ -110,7 +104,7 @@ public class ProcessHandler {
       throw new IllegalStateException("Process already started");
     }
 
-    return started(processBuilder.start());
+    return started(processBuilder.redirectErrorStream(true).start());
   }
 
   /**
@@ -166,19 +160,23 @@ public class ProcessHandler {
       throw new IllegalStateException("No process started");
     }
 
-    doStop();
+    doStop("Stopped by plugin");
 
     watchdogExitGrace();
   }
 
   private void shutdownHandler() {
-    doStop();
+    doStop("Stop by shutdown handler");
   }
 
-  private void doStop() {
+  private void doStop(String reason) {
     if (stopped.compareAndSet(false, true)) {
       try {
-        listenUrlWaiter.cancel();
+        if (reason != null) {
+          listenUrlWaiter.stopped(reason);
+        } else {
+          listenUrlWaiter.timedOut();
+        }
         process.destroy();
         try {
           if (!process.waitFor(timeStopMillis, TimeUnit.MILLISECONDS)) {
@@ -232,11 +230,13 @@ public class ProcessHandler {
     return exitCode.get();
   }
 
+  long remainingWaitTimeNanos() {
+    return listenUrlWaiter.remainingNanos();
+  }
+
   private Object watchdog() throws IOException {
-    try (InputStream out = process.getInputStream();
-        InputStream err = process.getErrorStream()) {
+    try (InputStream out = process.getInputStream()) {
       InputBuffer stdout = new InputBuffer(out, listenUrlWaiter);
-      InputBuffer stderr = new InputBuffer(err, stderrTarget);
       try {
 
         /*
@@ -256,15 +256,12 @@ public class ProcessHandler {
          */
         while (true) {
           boolean anyIo = stdout.io();
-          anyIo |= stderr.io();
 
           try {
             int ec = process.exitValue();
             exitCode.set(ec);
             if (!anyIo) {
-              if (!stopped.get()) {
-                stderrTarget.accept(String.format("Watched process exited with exit-code %d", ec));
-              }
+              listenUrlWaiter.exited(exitCode.get());
               break;
             }
           } catch (IllegalThreadStateException e) {
@@ -272,7 +269,7 @@ public class ProcessHandler {
           }
 
           if (listenUrlWaiter.isTimeout() && !stopped.get()) {
-            doStop();
+            doStop(null);
           }
 
           if (!anyIo) {
@@ -280,16 +277,13 @@ public class ProcessHandler {
               // Yield CPU for a little while, so this background thread does not consume 100% CPU.
               Thread.sleep(1L);
             } catch (InterruptedException interruptedException) {
-              System.err.println("ProcessHandler's watchdog thread interrupted, stopping process.");
-              doStop();
+              doStop("ProcessHandler's watchdog thread interrupted.");
               exitCode.set(ERROR);
               break;
             }
           }
         }
       } finally {
-        listenUrlWaiter.cancel();
-        stderr.flush();
         stdout.flush();
       }
     }

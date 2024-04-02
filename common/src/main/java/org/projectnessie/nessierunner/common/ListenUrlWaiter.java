@@ -15,9 +15,9 @@
  */
 package org.projectnessie.nessierunner.common;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -39,12 +39,15 @@ final class ListenUrlWaiter implements Consumer<String> {
   static final String TIMEOUT_MESSAGE =
       "Did not get the http(s) listen URL from the console output.";
   private static final long MAX_ITER_WAIT_NANOS = TimeUnit.MILLISECONDS.toNanos(50);
+  public static final String NOTHING_RECEIVED = " No output received from process.";
+  public static final String CAPTURED_LOG_FOLLOWS = " Captured output follows:\n";
 
   private final LongSupplier clock;
   private final Consumer<String> stdoutTarget;
   private final long deadlineListenUrl;
 
   private final CompletableFuture<List<String>> listenUrl = new CompletableFuture<>();
+  private final List<String> capturedLog = new ArrayList<>();
 
   /**
    * Construct a new instance to wait for Quarkus' {@code Listening on: ...} message.
@@ -64,9 +67,13 @@ final class ListenUrlWaiter implements Consumer<String> {
   @Override
   public void accept(String line) {
     if (!listenUrl.isDone()) {
-      Matcher m = HTTP_PORT_LOG_PATTERN.matcher(line);
-      if (m.matches()) {
-        listenUrl.complete(Arrays.asList(m.group(1), m.group(3)));
+      synchronized (capturedLog) {
+        capturedLog.add(line);
+        Matcher m = HTTP_PORT_LOG_PATTERN.matcher(line);
+        if (m.matches()) {
+          listenUrl.complete(Arrays.asList(m.group(1), m.group(3)));
+          capturedLog.clear();
+        }
       }
     }
     stdoutTarget.accept(line);
@@ -91,7 +98,7 @@ final class ListenUrlWaiter implements Consumer<String> {
       // must succeed if the listen-url has been captured, even if it's called after the timeout has
       // elapsed
       if (remainingNanos < 0 && !listenUrl.isDone()) {
-        throw new TimeoutException(TIMEOUT_MESSAGE);
+        throw getTimeoutException(null);
       }
 
       try {
@@ -100,9 +107,10 @@ final class ListenUrlWaiter implements Consumer<String> {
         // Continue, check above.
         // This "short get()" is implemented to make the unit test TestListenUrlWaiter.noTimeout()
         // run faster.
-      } catch (CancellationException e) {
-        throw new TimeoutException(TIMEOUT_MESSAGE);
       } catch (ExecutionException e) {
+        if (e.getCause() instanceof TimeoutException) {
+          throw getTimeoutException(e.getCause());
+        }
         if (e.getCause() instanceof RuntimeException) {
           throw (RuntimeException) e.getCause();
         } else {
@@ -112,11 +120,40 @@ final class ListenUrlWaiter implements Consumer<String> {
     }
   }
 
-  void cancel() {
-    listenUrl.cancel(false);
+  private TimeoutException getTimeoutException(Throwable cause) {
+    String log;
+    synchronized (capturedLog) {
+      log = String.join("\n", capturedLog);
+    }
+    TimeoutException ex =
+        new TimeoutException(
+            TIMEOUT_MESSAGE + (log.isEmpty() ? NOTHING_RECEIVED : (CAPTURED_LOG_FOLLOWS + log)));
+    if (cause != null) {
+      ex.addSuppressed(cause);
+    }
+    return ex;
   }
 
-  private long remainingNanos() {
+  void stopped(String reason) {
+    listenUrl.completeExceptionally(new RuntimeException(reason));
+  }
+
+  void timedOut() {
+    listenUrl.completeExceptionally(new TimeoutException());
+  }
+
+  public void exited(int exitCode) {
+    // No-op, if the listen-URL has already been received, so using the TIMEOUT_MESSAGE here is
+    // fine.
+    listenUrl.completeExceptionally(
+        new RuntimeException(
+            ListenUrlWaiter.TIMEOUT_MESSAGE
+                + " Process exited early, exit code is "
+                + exitCode
+                + "."));
+  }
+
+  long remainingNanos() {
     return deadlineListenUrl - clock.getAsLong();
   }
 
