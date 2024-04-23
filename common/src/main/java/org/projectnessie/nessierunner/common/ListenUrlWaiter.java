@@ -145,12 +145,17 @@ final class ListenUrlWaiter implements Consumer<String> {
   public void exited(int exitCode) {
     // No-op, if the listen-URL has already been received, so using the TIMEOUT_MESSAGE here is
     // fine.
+    String log;
+    synchronized (capturedLog) {
+      log = String.join("\n", capturedLog);
+    }
     listenUrl.completeExceptionally(
         new RuntimeException(
             ListenUrlWaiter.TIMEOUT_MESSAGE
                 + " Process exited early, exit code is "
                 + exitCode
-                + "."));
+                + "."
+                + (log.isEmpty() ? NOTHING_RECEIVED : (CAPTURED_LOG_FOLLOWS + log))));
   }
 
   long remainingNanos() {
