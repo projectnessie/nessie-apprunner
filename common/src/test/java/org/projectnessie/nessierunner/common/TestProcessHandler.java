@@ -79,7 +79,8 @@ class TestProcessHandler {
         .hasMessage("Process already started");
   }
 
-  @RepeatedTest(20) // repeat, risk of flakiness
+  @RepeatedTest(20)
+  // repeat, risk of flakiness
   void processWithNoOutput() {
     ProcessHandlerMock phMock = new ProcessHandlerMock();
 
@@ -110,7 +111,8 @@ class TestProcessHandler {
     soft.assertThat(phMock.ph.isAlive()).isFalse();
   }
 
-  @RepeatedTest(20) // repeat, risk of flakiness
+  @RepeatedTest(20)
+  // repeat, risk of flakiness
   void processExitsEarly() {
     ProcessHandlerMock phMock = new ProcessHandlerMock();
 
@@ -128,7 +130,9 @@ class TestProcessHandler {
         .failsWithin(5, SECONDS)
         .withThrowableOfType(ExecutionException.class) // EE from ForkJoinPool/executor (test code)
         .withMessageEndingWith(
-            ListenUrlWaiter.TIMEOUT_MESSAGE + " Process exited early, exit code is 88.");
+            ListenUrlWaiter.TIMEOUT_MESSAGE
+                + " Process exited early, exit code is 88."
+                + ListenUrlWaiter.NOTHING_RECEIVED);
 
     // Need to wait for the watchdog to finish, before we can do any further assertion
     phMock.ph.watchdogExitGrace();
@@ -137,7 +141,8 @@ class TestProcessHandler {
     soft.assertThat(phMock.ph.getExitCode()).isEqualTo(88);
   }
 
-  @RepeatedTest(20) // repeat, risk of flakiness
+  @RepeatedTest(20)
+  // repeat, risk of flakiness
   void processLotsOfIoNoListen() throws Exception {
     ProcessHandlerMock phMock = new ProcessHandlerMock();
 
@@ -188,7 +193,8 @@ class TestProcessHandler {
     soft.assertThat(phMock.stdoutLines).hasSize((int) (phMock.timeToUrl / 10));
   }
 
-  @RepeatedTest(20) // repeat, risk of flakiness
+  @RepeatedTest(20)
+  // repeat, risk of flakiness
   void processLotsOfIoProperListenUrl() {
     ProcessHandlerMock phMock = new ProcessHandlerMock();
 
