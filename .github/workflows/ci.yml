@@ -49,15 +49,18 @@ jobs:
       run: |
         ./mvnw --batch-mode --threads 1C install javadoc:javadoc-no-fork -Pcode-coverage -Dtest.log.level=WARN
 
-    - name: Build with Gradle
+    - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
       env:
         GRADLE_BUILD_ACTION_CACHE_KEY_ENVIRONMENT: java-${{ matrix.java-version }}
       with:
         build-root-directory: ./gradle-plugin
-        # -Pcode-coverage would enable Jacoco, but Gradle's testkit doesn't like Java agents,
-        # see https://docs.gradle.org/8.0.2/userguide/configuration_cache.html#config_cache:not_yet_implemented:testkit_build_with_java_agent
-        arguments: build --scan
+
+    - name: Build with Gradle
+      # -Pcode-coverage would enable Jacoco, but Gradle's testkit doesn't like Java agents,
+      # see https://docs.gradle.org/8.0.2/userguide/configuration_cache.html#config_cache:not_yet_implemented:testkit_build_with_java_agent
+      working-directory: ./gradle-plugin
+      run: ./gradlew build --scan
 
     - name: Capture test results
       uses: actions/upload-artifact@v4
