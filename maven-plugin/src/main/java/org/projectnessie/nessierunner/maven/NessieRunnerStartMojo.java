@@ -23,6 +23,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.stream.Collectors;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -153,6 +154,7 @@ public class NessieRunnerStartMojo extends AbstractNessieRunnerMojo {
                 Collections.singletonMap("version", Integer.toString(javaVersion)))
             .stream()
             .map(tc -> tc.findTool("java"))
+            .filter(Objects::nonNull)
             .findFirst()
             .orElseGet(
                 () -> {

@@ -75,6 +75,7 @@ class ITNessieMavenPlugin {
   @MavenTest
   @MavenGoal("verify")
   @MavenOption(MavenCLIOptions.ERRORS)
+  @MavenOption(value = MavenCLIOptions.TOOLCHAINS, parameter = "non-java-toolchains.xml")
   void unknownJdk(MavenExecutionResult result) {
     assertThat(result)
         .isFailure()
