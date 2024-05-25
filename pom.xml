@@ -154,7 +154,7 @@
     <jsr305.version>3.0.2</jsr305.version>
     <junit.version>5.10.2</junit.version>
     <maven.resolver.version>1.7.3</maven.resolver.version>
-    <maven.version>3.9.6</maven.version>
+    <maven.version>3.9.7</maven.version>
     <maven-plugin-annotations.version>3.13.0</maven-plugin-annotations.version>
     <soebes.itf.version>0.13.1</soebes.itf.version>
     <surefire.version>3.2.5</surefire.version>
