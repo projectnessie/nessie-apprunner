@@ -157,7 +157,7 @@
     <maven.version>3.9.7</maven.version>
     <maven-plugin-annotations.version>3.13.1</maven-plugin-annotations.version>
     <soebes.itf.version>0.13.1</soebes.itf.version>
-    <surefire.version>3.2.5</surefire.version>
+    <surefire.version>3.3.0</surefire.version>
   </properties>
 
   <dependencyManagement>
