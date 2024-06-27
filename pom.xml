@@ -152,7 +152,7 @@
     <jackson.version>2.13.1</jackson.version>
     <jacoco.version>0.8.12</jacoco.version>
     <jsr305.version>3.0.2</jsr305.version>
-    <junit.version>5.10.2</junit.version>
+    <junit.version>5.10.3</junit.version>
     <maven.resolver.version>1.7.3</maven.resolver.version>
     <maven.version>3.9.8</maven.version>
     <maven-plugin-annotations.version>3.13.1</maven-plugin-annotations.version>
