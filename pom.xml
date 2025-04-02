@@ -150,7 +150,7 @@
     <google-java-format.version>1.24.0</google-java-format.version>
     <!-- Jackson's required by Gradle plugin integration tests -->
     <jackson.version>2.13.1</jackson.version>
-    <jacoco.version>0.8.12</jacoco.version>
+    <jacoco.version>0.8.13</jacoco.version>
     <jsr305.version>3.0.2</jsr305.version>
     <junit.version>5.11.4</junit.version>
     <maven.resolver.version>1.7.3</maven.resolver.version>
