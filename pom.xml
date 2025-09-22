@@ -264,7 +264,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.14.0</version>
+          <version>3.14.1</version>
           <configuration>
             <!-- without this, you get NPE rather than useful messages with Maven + JDK11 -->
             <forceLegacyJavacApi>true</forceLegacyJavacApi>
