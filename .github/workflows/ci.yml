@@ -50,7 +50,7 @@ jobs:
         ./mvnw --batch-mode --threads 1C install javadoc:javadoc-no-fork -Pcode-coverage -Dtest.log.level=WARN
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v5
       env:
         GRADLE_BUILD_ACTION_CACHE_KEY_ENVIRONMENT: java-${{ matrix.java-version }}
       with:
