@@ -23,10 +23,10 @@ plugins {
 
 def mavenPropertiesFile = file('../target/project.properties')
 if (!mavenPropertiesFile.exists() || mavenPropertiesFile.lastModified() < file("../pom.xml").lastModified()) {
-  exec {
+  providers.exec {
     commandLine = ['../mvnw', 'properties:write-project-properties', '-Pall-properties', '-q', '-f', '../pom.xml']
     environment('JAVA_HOME', System.properties['java.home'])
-  }.assertNormalExitValue()
+  }.result.get().assertNormalExitValue()
 }
 def mavenProperties = new Properties()
 mavenProperties.load(new StringReader(mavenPropertiesFile.text))
