@@ -266,6 +266,7 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.14.1</version>
           <configuration>
+            <release>21</release>
             <!-- without this, you get NPE rather than useful messages with Maven + JDK11 -->
             <forceLegacyJavacApi>true</forceLegacyJavacApi>
             <compilerArgs>
@@ -742,7 +743,7 @@ limitations under the License.
               <rules>
                 <banDuplicatePomDependencyVersions />
                 <requireJavaVersion>
-                  <version>11</version>
+                  <version>17</version>
                 </requireJavaVersion>
                 <requireMavenVersion>
                   <version>[3.6.2,)</version>
