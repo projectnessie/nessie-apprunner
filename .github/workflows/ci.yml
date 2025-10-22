@@ -37,7 +37,7 @@ jobs:
         java-version: ['11', '17', '21']
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Setup Java, Maven, Gradle
       uses: ./.github/actions/dev-tool-java
       with:
