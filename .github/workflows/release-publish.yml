@@ -84,6 +84,15 @@ jobs:
         gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
     ### END runner setup
 
+    # Installs Maven artifacts locally.
+    - name: Install Maven artifacts
+      run: |
+        ./mvnw \
+          --batch-mode \
+          install \
+          -Prelease \
+          -DskipTests
+
     # Deploys Maven artifacts. Build and test steps were already ran in previous steps.
     # Not running tests, because the environment contains secrets.
     - name: Publish Maven artifacts for release
@@ -96,7 +105,7 @@ jobs:
       run: |
         ./mvnw \
           --batch-mode \
-          install deploy \
+          deploy \
           -Prelease \
           -DskipTests
 
