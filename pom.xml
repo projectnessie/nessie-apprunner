@@ -806,6 +806,7 @@ limitations under the License.
               <compilerArgs combine.children="append">
                 <arg>-XDcompilePolicy=simple</arg>
                 <arg>-Xplugin:ErrorProne -XepExcludedPaths:.*/target/generated-*sources/.*</arg>
+                <arg>--should-stop=ifError=FLOW</arg>
               </compilerArgs>
               <annotationProcessorPaths combine.children="append">
                 <path>
