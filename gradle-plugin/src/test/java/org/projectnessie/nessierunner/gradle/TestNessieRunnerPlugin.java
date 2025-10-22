@@ -69,6 +69,9 @@ class TestNessieRunnerPlugin {
             "",
             "include 'sub'"));
 
+    // Gradle 9 requires an included project's directory to exist
+    Files.createDirectory(testProjectDir.resolve("sub"));
+
     // Versions injected from build.gradle
     nessieVersionForTest = System.getProperty("nessie-version-for-test", "0.21.2");
     String junitVersion = System.getProperty("junit-version");
