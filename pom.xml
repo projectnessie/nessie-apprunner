@@ -327,6 +327,7 @@
             <publishingServerId>central</publishingServerId>
             <autoPublish>true</autoPublish>
             <waitUntil>published</waitUntil>
+            <deploymentName>nessie-apprunner ${project.version}</deploymentName>
           </configuration>
         </plugin>
         <plugin>
