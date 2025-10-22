@@ -29,6 +29,8 @@
   <artifactId>nessie-apprunner-maven-plugin</artifactId>
   <version>0.32.6-SNAPSHOT</version>
 
+  <name>Nessie Runner Maven Plugin</name>
+
   <distributionManagement>
     <relocation>
       <groupId>org.projectnessie.nessie-runner</groupId>
