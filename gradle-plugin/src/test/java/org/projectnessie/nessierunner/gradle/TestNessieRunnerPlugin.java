@@ -290,7 +290,7 @@ class TestNessieRunnerPlugin {
     return GradleRunner.create()
         .withPluginClasspath()
         .withProjectDir(testProjectDir.toFile())
-        .withArguments("--configuration-cache", "--build-cache", "--info", "--stacktrace", task)
+        .withArguments("--no-configuration-cache", "--build-cache", "--info", "--stacktrace", task)
         .withDebug(true)
         .forwardOutput();
   }

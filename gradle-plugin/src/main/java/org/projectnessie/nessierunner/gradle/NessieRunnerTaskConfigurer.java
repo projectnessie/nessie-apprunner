@@ -23,7 +23,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
@@ -77,9 +76,7 @@ public class NessieRunnerTaskConfigurer<T extends Task> implements Action<T> {
             .map(d -> String.format("%s:%s:%s", d.getGroup(), d.getName(), d.getVersion()))
             .collect(Collectors.joining(", "));
     FileCollection files =
-        !dependencies.isEmpty()
-            ? appConfig.fileCollection(dependencies.toArray(new Dependency[0]))
-            : null;
+        !dependencies.isEmpty() ? appConfig.getIncoming().artifactView(v -> {}).getFiles() : null;
 
     ExtraPropertiesExtension extra =
         task.getExtensions().findByType(ExtraPropertiesExtension.class);
