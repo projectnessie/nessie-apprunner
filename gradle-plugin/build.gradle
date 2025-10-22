@@ -75,7 +75,7 @@ repositories {
 }
 
 compileJava {
-  options.release = 21
+  options.release = 11
 }
 
 test {
