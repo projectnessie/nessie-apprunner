@@ -86,6 +86,8 @@ jobs:
 
     # Installs Maven artifacts locally.
     - name: Install Maven artifacts
+      env:
+        MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
       run: |
         ./mvnw \
           --batch-mode \
