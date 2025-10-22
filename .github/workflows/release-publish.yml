@@ -91,15 +91,14 @@ jobs:
       env:
         RELEASE_VERSION: ${{ env.REL_VERSION }}
         MAVEN_USERNAME: ${{ secrets.OSSRH_ACCESS_ID }}
-        MAVEN_OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
+        MAVEN_CENTRAL_TOKEN: ${{ secrets.OSSRH_TOKEN }}
         MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
       run: |
-        NEXUS_ARGS="-DnexusUrl=https://oss.sonatype.org -DserverId=ossrh -DautoReleaseAfterClose=true"
-        PROFILES="-Prelease"
-        GOALS="install org.sonatype.plugins:nexus-staging-maven-plugin:1.6.13:deploy"
-        BUILD_ARGS="-DskipTests"
-
-        ./mvnw --batch-mode ${GOALS} ${PROFILES} ${NEXUS_ARGS} ${BUILD_ARGS}
+        ./mvnw \
+          --batch-mode \
+          install deploy \
+          -Prelease \
+          -DskipTests
 
     # Deploys Gradle plugin. Build and test steps were already ran in previous steps
     - name: Publish Gradle Plugin for release
