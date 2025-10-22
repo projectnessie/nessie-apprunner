@@ -3,8 +3,8 @@ description: 'Sets up Java + Gradle'
 inputs:
   java-version:
     required: false
-    default: '11'
-    description: 'Java version, defaults to 11'
+    default: '21'
+    description: 'Java version, defaults to 21'
   gpg-private-key:
     required: false
     default: ''
