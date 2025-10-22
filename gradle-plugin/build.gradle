@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
+import org.gradle.api.plugins.jvm.JvmTestSuite
+
 plugins {
   id 'java-gradle-plugin'
   id 'maven-publish'
   id 'com.gradle.plugin-publish' version '2.0.0'
   id "com.diffplug.spotless" version "8.0.0"
+  id 'jvm-test-suite'
 }
 
 def mavenPropertiesFile = file('../target/project.properties')
@@ -33,7 +36,7 @@ mavenProperties.load(new StringReader(mavenPropertiesFile.text))
 
 def assertjVersion = mavenProperties.get('assertj.version')
 def jacksonVersion = mavenProperties.get('jackson.version')
-def junitVersion = mavenProperties.get('junit.version')
+def junitVersion = mavenProperties.get('junit.version') as String
 
 group = "org.projectnessie.nessie-runner"
 version = mavenProperties.get('nessierunner.version')
@@ -93,7 +96,14 @@ test {
           "--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED",
           "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
           "--add-opens=java.base/java.util=ALL-UNNAMED")
-  useJUnitPlatform()
+}
+
+testing {
+  suites {
+    configureEach {
+      (it as JvmTestSuite).useJUnitJupiter(junitVersion)
+    }
+  }
 }
 
 javadoc {
