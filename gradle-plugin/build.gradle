@@ -21,10 +21,6 @@ plugins {
   id "com.diffplug.spotless" version "7.2.1"
 }
 
-if (project.hasProperty("code-coverage")) {
-  plugins.apply('jacoco')
-}
-
 def mavenPropertiesFile = file('../target/project.properties')
 if (!mavenPropertiesFile.exists() || mavenPropertiesFile.lastModified() < file("../pom.xml").lastModified()) {
   exec {
@@ -37,7 +33,6 @@ mavenProperties.load(new StringReader(mavenPropertiesFile.text))
 
 def assertjVersion = mavenProperties.get('assertj.version')
 def jacksonVersion = mavenProperties.get('jackson.version')
-def jacocoVersion = mavenProperties.get('jacoco.version')
 def junitVersion = mavenProperties.get('junit.version')
 
 group = "org.projectnessie.nessie-runner"
@@ -113,27 +108,6 @@ dependencies {
   testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
   testImplementation("org.assertj:assertj-core:${assertjVersion}")
-}
-
-if (project.hasProperty("code-coverage")) {
-  jacoco {
-    toolVersion = jacocoVersion
-  }
-}
-
-task codeCoverageReport(type:JacocoReport) {
-  executionData test
-  sourceSets sourceSets.main
-
-  reports {
-    html.required = true
-    xml.required = true
-    csv.required = true
-  }
-}
-
-check {
-  dependsOn codeCoverageReport
 }
 
 publishing {
