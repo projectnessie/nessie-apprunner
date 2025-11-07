@@ -136,7 +136,7 @@
     <assertj.version>3.27.6</assertj.version>
     <checkstyle.version>12.1.1</checkstyle.version>
     <errorprone-slf4j.version>0.1.29</errorprone-slf4j.version>
-    <google-error-prone.version>2.43.0</google-error-prone.version>
+    <google-error-prone.version>2.44.0</google-error-prone.version>
     <google-java-format.version>1.31.0</google-java-format.version>
     <!-- Jackson's required by Gradle plugin integration tests -->
     <jackson.version>2.13.1</jackson.version>
