@@ -65,7 +65,7 @@ jobs:
 
     ### BEGIN runner setup
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
     - name: Setup Java, Maven, Gradle
       uses: ./.github/actions/dev-tool-java
     ### END runner setup
