@@ -133,7 +133,7 @@
 
     <!-- Version properties -->
     <nessierunner.version>${project.version}</nessierunner.version>
-    <assertj.version>3.27.6</assertj.version>
+    <assertj.version>3.27.7</assertj.version>
     <checkstyle.version>13.0.0</checkstyle.version>
     <errorprone-slf4j.version>0.1.29</errorprone-slf4j.version>
     <google-error-prone.version>2.45.0</google-error-prone.version>
